@@ -23,7 +23,7 @@ the agent, not a second model in the cloud.
 
 ```
 Remote tester (browser, anywhere)
-  │  https://<chosen-subdomain>
+  │  https://kiosk.ciaocorp.com
   ▼
 Cloudflare edge (TLS, DDoS protection, optional Access login)
   │  outbound-only tunnel, no open ports
@@ -65,8 +65,11 @@ app). The photo is downscaled in the browser to 1024 px, sent to
 See `hardware/jetson/cloudflared/README.md` for the Saturday steps:
 install `cloudflared`, `cloudflared tunnel login`, create the tunnel,
 add the Public Hostname in the Cloudflare Zero Trust dashboard, run
-the tunnel, verify the `https://` link. The subdomain is **not
-chosen yet** — every file here uses a placeholder.
+the tunnel, verify the `https://` link. The hostname is
+**https://kiosk.ciaocorp.com** (decided 2026-11-05) — a single-level
+subdomain, covered by Cloudflare's free Universal SSL wildcard for
+`*.ciaocorp.com` (unlike the two-level `shop.demo.ciaocorp.com`,
+which could never get a certificate).
 
 To restrict testers later, add **Cloudflare Access** (Zero Trust) on
 the same hostname: allow only listed email addresses. No code change

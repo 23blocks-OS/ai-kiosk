@@ -3,7 +3,9 @@
 Remote testers reach the *same* Jetson agent through a Cloudflare
 Tunnel — see `docs/remote-access.md` for why. This folder holds only
 config and setup steps. **No tunnel runs in this repo, no token lives
-here, and the subdomain is not chosen yet.**
+here. The hostname is https://kiosk.ciaocorp.com** (decided
+2026-11-05, single-level subdomain, covered by Cloudflare's free
+Universal SSL wildcard).
 
 ## Saturday steps (on the Jetson, after it boots and Ollama works)
 
@@ -27,7 +29,7 @@ here, and the subdomain is not chosen yet.**
    mkdir -p ~/.cloudflared
    cp config.yml.example ~/.cloudflared/config.yml
    # edit: TUNNEL-ID-PLACEHOLDER -> your tunnel id
-   #       kiosk-PLACEHOLDER.example.com -> your chosen hostname
+   #       hostname is already kiosk.ciaocorp.com
    ```
    Keep `~/.cloudflared/` out of git — it holds the tunnel
    credentials file.
