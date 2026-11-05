@@ -37,7 +37,11 @@ on the same Jetson.
 
 1. **Agent (main view).** Status (Idle / Listening / Thinking /
    Speaking), conversation transcript, big mic button, text input,
-   ES/EN toggle. Shared styles: `packages/shared-ui/agent.css`.
+   ES/EN toggle. The agent's face is Phase 1: an animated
+   waveform/orb (`docs/agent-visual-roadmap.md`) — it breathes when
+   idle, ripples when listening, spins while thinking, moves while
+   speaking, and glances at the PiP while reading a document.
+   Shared styles: `packages/shared-ui/agent.css`.
 2. **Picture-in-Picture (bottom-right, ~25–30% width).** What the
    agent is seeing, live. Tap to expand, freeze a frame (the snapshot
    the agent analyzes), hide it and bring it back. Shared styles:
@@ -89,7 +93,7 @@ fine deployable text baseline if a text-only model is ever needed.
 
 | Piece | State |
 | --- | --- |
-| Intercambio front end | Working prototype, now calls the backend (Ollama when up, honest stub when not); remote upload mode (`?mode=remote`) |
+| Intercambio front end | Working prototype, now calls the backend (Ollama when up, honest stub when not); remote upload mode (`?mode=remote`); animated waveform/orb agent visual (Phase 1, `docs/agent-visual-roadmap.md`) |
 | Shop / Nonprofit front ends | Placeholder pages reusing the shell |
 | agent-backend `/health`, `/api/chat`, `/api/vision` | Wired to Ollama (Qwen3-VL 4B); honest stub fallback when Ollama is down; concurrency guard of 2 |
 | Cloudflare Tunnel | Docs + config only (`docs/remote-access.md`, `hardware/jetson/cloudflared/`) — not run yet, no token, no subdomain chosen |

@@ -51,6 +51,12 @@ used.
   community, a small local model, and control that stays with the
   people using it.
 
+## Agent visual
+
+Phase 1 (built): an animated waveform/orb — see
+`docs/agent-visual-roadmap.md`. Phase 2 (simple mascot) and Phase 3
+(friendly face avatar) are planned, not built, in that order.
+
 ## Saturday test (Nov 7, 2026)
 
 1. Boot the Jetson, open the Intercambio app in full-screen Chromium.

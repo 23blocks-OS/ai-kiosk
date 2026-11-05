@@ -22,10 +22,21 @@
   </header>
 
   <section class="agent" aria-label="Agente / Agent">
-    <p class="agent-status" data-state="idle" id="status">
-      <span class="dot" aria-hidden="true"></span>
-      <span id="status-text" data-i18n="status_idle">Estoy lista para ayudarte</span>
-    </p>
+    <div class="agent-visual-row">
+      <div class="agent-visual" id="agent-visual" data-visual="waveform" data-state="idle" data-looking="false" aria-hidden="true">
+        <div class="orb-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p class="agent-status" data-state="idle" id="status">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="status-text" data-i18n="status_idle">Estoy lista para ayudarte</span>
+      </p>
+    </div>
+    <div class="visual-switch" role="group" aria-label="Aspecto / Look">
+      <button type="button" id="visual-waveform" aria-pressed="true" data-i18n="visual_waveform">Onda</button>
+      <button type="button" id="visual-mascot" aria-pressed="false" aria-disabled="true" data-i18n="visual_mascot">Mascota · pronto</button>
+      <button type="button" id="visual-face" aria-pressed="false" aria-disabled="true" data-i18n="visual_face">Rostro · pronto</button>
+    </div>
+    <p class="visual-soon" id="visual-soon" hidden></p>
 
     <div class="chat" id="chat" aria-live="polite">
       <p class="chat-empty" id="chat-empty" data-i18n="chat_empty">Pon un formulario o una carta bajo la cámara, en la ventanita de abajo a la derecha. Luego pregúntame qué dice, o toca el micrófono y habla.</p>

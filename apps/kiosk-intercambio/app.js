@@ -13,6 +13,12 @@
       status_listening: "Te escucho…",
       status_thinking: "Estoy pensando…",
       status_speaking: "Te respondo…",
+      visual_waveform: "Onda",
+      visual_mascot: "Mascota · pronto",
+      visual_face: "Rostro · pronto",
+      visual_soon_mascot: "Próximamente: una mascota sencilla que te mira y mira tu documento. Por ahora, la onda es la cara del agente.",
+      visual_soon_face: "Próximamente: un rostro amistoso con movimiento de labios. Por ahora, la onda es la cara del agente.",
+      visual_look_label: "Aspecto",
       chat_empty: "Pon un formulario o una carta bajo la cámara, en la ventanita de abajo a la derecha. Luego pregúntame qué dice, o toca el micrófono y habla.",
       mic_talk: "Hablar",
       mic_stop: "Parar",
@@ -52,6 +58,12 @@
       status_listening: "Listening…",
       status_thinking: "Thinking…",
       status_speaking: "Answering…",
+      visual_waveform: "Wave",
+      visual_mascot: "Mascot · soon",
+      visual_face: "Face · soon",
+      visual_soon_mascot: "Coming soon: a simple mascot that looks at you and at your document. For now, the wave is the agent's face.",
+      visual_soon_face: "Coming soon: a friendly face with lip-sync. For now, the wave is the agent's face.",
+      visual_look_label: "Look",
       chat_empty: "Put a form or letter under the camera, in the small window at the bottom right. Then ask me what it says, or tap the microphone and speak.",
       mic_talk: "Speak",
       mic_stop: "Stop",
@@ -133,10 +145,41 @@
   var pipFreeze = $("pip-freeze"), pipEnable = $("pip-enable");
   var pipRestore = $("pip-restore");
   var stream = null, frozen = false, recognizing = false, recognition = null;
+  var agentVisual = "waveform"; /* "waveform" built; "mascot"/"face" = coming soon */
+  var soonMode = null;
+  var visualEl = $("agent-visual"), visualSoon = $("visual-soon");
+  var micLevel = null; /* {ctx, analyser, stream, raf} or null — real level only */
+
+  function setVisualLooking() {
+    /* Glance at the PiP (bottom-right) while reading a frozen frame,
+       or while thinking about an uploaded photo. Subtle, not cartoonish. */
+    var looking = frozen || Boolean(uploadedImage && statusEl.getAttribute("data-state") === "thinking");
+    visualEl.setAttribute("data-looking", String(looking));
+  }
+
+  function setAgentVisual(mode) {
+    /* Mascot/face are not built: show a plain "coming soon" panel,
+       never a fake face. Waveform stays the active visual. */
+    if (mode === "waveform") {
+      agentVisual = "waveform";
+      soonMode = null;
+      visualEl.setAttribute("data-visual", "waveform");
+      visualSoon.hidden = true;
+      $("visual-waveform").setAttribute("aria-pressed", "true");
+      $("visual-mascot").setAttribute("aria-pressed", "false");
+      $("visual-face").setAttribute("aria-pressed", "false");
+      return;
+    }
+    soonMode = mode;
+    visualSoon.hidden = false;
+    visualSoon.textContent = t("visual_soon_" + mode);
+  }
 
   function setStatus(state) {
     statusEl.setAttribute("data-state", state);
+    visualEl.setAttribute("data-state", state);
     statusText.textContent = t("status_" + state);
+    setVisualLooking();
   }
 
   function setLang(next) {
@@ -159,11 +202,47 @@
       if (!pipEmpty.hidden) pipEmpty.querySelector("p").textContent = t("pip_empty_remote");
       pipEnable.hidden = true;
     }
+    if (soonMode) visualSoon.textContent = t("visual_soon_" + soonMode);
     setStatus(statusEl.getAttribute("data-state") || "idle");
   }
 
   $("lang-es").addEventListener("click", function () { setLang("es"); });
   $("lang-en").addEventListener("click", function () { setLang("en"); });
+  $("visual-waveform").addEventListener("click", function () { setAgentVisual("waveform"); });
+  $("visual-mascot").addEventListener("click", function () { setAgentVisual("mascot"); });
+  $("visual-face").addEventListener("click", function () { setAgentVisual("face"); });
+
+  /* Mic level for the listening ripple: a real analyser when the
+     browser grants an audio stream; if it does not, the CSS ripple
+     runs on its own — no fake level is ever invented. */
+  function startMicLevel() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia ||
+        !window.AudioContext) return;
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+      var ctx = new AudioContext();
+      var analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      ctx.createMediaStreamSource(s).connect(analyser);
+      var data = new Uint8Array(analyser.frequencyBinCount);
+      var tick = function () {
+        if (!micLevel) return;
+        analyser.getByteTimeDomainData(data);
+        var peak = 0;
+        for (var i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i] - 128) / 128);
+        visualEl.style.setProperty("--level", Math.min(1, peak * 2).toFixed(2));
+        micLevel.raf = requestAnimationFrame(tick);
+      };
+      micLevel = { ctx: ctx, stream: s, raf: requestAnimationFrame(tick) };
+    }).catch(function () { /* no audio stream: CSS ripple only */ });
+  }
+  function stopMicLevel() {
+    if (!micLevel) return;
+    cancelAnimationFrame(micLevel.raf);
+    micLevel.stream.getTracks().forEach(function (tr) { tr.stop(); });
+    micLevel.ctx.close().catch(function () {});
+    micLevel = null;
+    visualEl.style.setProperty("--level", "0.35");
+  }
 
   function addMessage(who, text) {
     if (chatEmpty) chatEmpty.remove();
@@ -232,12 +311,14 @@
       recognition.onresult = function (e) {
         var transcript = e.results[0][0].transcript;
         recognizing = false;
+        stopMicLevel();
         micBtn.setAttribute("aria-pressed", "false");
         micBtn.querySelector("span").textContent = t("mic_talk");
         if (transcript) answer(transcript);
       };
       recognition.onerror = function () {
         recognizing = false;
+        stopMicLevel();
         micBtn.setAttribute("aria-pressed", "false");
         micBtn.querySelector("span").textContent = t("mic_talk");
         voiceNote.hidden = false;
@@ -246,6 +327,7 @@
       };
       recognition.onend = function () {
         recognizing = false;
+        stopMicLevel();
         micBtn.setAttribute("aria-pressed", "false");
         micBtn.querySelector("span").textContent = t("mic_talk");
         if (statusEl.getAttribute("data-state") === "listening") setStatus("idle");
@@ -257,6 +339,7 @@
         micBtn.querySelector("span").textContent = t("mic_stop");
         voiceNote.hidden = true;
         setStatus("listening");
+        startMicLevel();
       } catch (e) {
         voiceNote.hidden = false;
         voiceNote.textContent = t("voice_error");
@@ -354,6 +437,7 @@
       frozen = false;
     }
     pipFreeze.textContent = frozen ? t("pip_resume") : t("pip_freeze");
+    setVisualLooking();
     setPipLive();
   });
 
@@ -381,6 +465,7 @@
     pip.classList.remove("is-frozen", "is-expanded");
     pip.classList.add("is-hidden");
     pipRestore.hidden = false;
+    setVisualLooking();
     setPipLive();
   });
 

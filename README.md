@@ -44,6 +44,7 @@ docs/
   architecture.md      # how the pieces fit
   plan-intercambio.md  # Intercambio first: scope and rules
   remote-access.md     # Cloudflare Tunnel to the Jetson
+  agent-visual-roadmap.md  # agent face: waveform (built) → mascot → face avatar
 ```
 
 ## Run the Intercambio prototype
