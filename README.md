@@ -14,20 +14,36 @@ Nothing leaves the box.
 ## Layout
 
 ```
+Visitor (kiosk) / remote tester (browser, ?mode=remote)
+  │  remote testers arrive via a Cloudflare Tunnel to the Jetson
+  ▼
+Web UI (apps/kiosk-*) — Agent main view + Picture-in-Picture
+  │  kiosk: live webcam in the PiP · remote: upload-a-photo in the PiP
+  ▼
+FastAPI backend (services/agent-backend/)
+  │  wired to Ollama on localhost:11434 — Qwen3-VL 4B
+  │  honest stub fallback if Ollama is down · max 2 concurrent calls
+  ▼
+Cloudflare Tunnel (optional, remote only) — backend on :8000 only,
+Ollama on :11434 is never tunnelled. See docs/remote-access.md.
+```
+
+```
 apps/
   kiosk-intercambio/   # first working prototype: agent + Picture-in-Picture
   kiosk-shop/          # stub
   kiosk-nonprofit/     # stub
   website/             # static landing page for the project
 services/
-  agent-backend/       # Python FastAPI skeleton (stubs for now)
+  agent-backend/       # FastAPI, wired to Ollama (see its README)
 packages/
   shared-ui/           # PiP + agent-view styles shared by all kiosks
 hardware/
-  jetson/              # Jetson Orin Nano Super setup notes
+  jetson/              # Jetson Orin Nano Super setup notes + cloudflared/
 docs/
   architecture.md      # how the pieces fit
   plan-intercambio.md  # Intercambio first: scope and rules
+  remote-access.md     # Cloudflare Tunnel to the Jetson
 ```
 
 ## Run the Intercambio prototype
@@ -38,9 +54,15 @@ Serve the **repo root** (the kiosk pages link to the shared styles in
 ```bash
 python3 -m http.server 8000
 # open http://localhost:8000/apps/kiosk-intercambio/
+# remote testers: .../apps/kiosk-intercambio/?mode=remote  (upload-a-photo, no camera)
 ```
 
 No build step, no framework, no install. Any plain static server works.
+With the backend running (`services/agent-backend/`, Ollama on
+`localhost:11434`), the app's replies come from Qwen3-VL 4B; without
+it, the app falls back to an honestly-labelled demo reply. The
+backend can also serve the UI itself on port 8000 — that is the mode
+the Cloudflare Tunnel uses (one origin, UI + API together).
 
 ## Rules that do not change
 

@@ -25,6 +25,13 @@
       pip_off: "Apagada",
       pip_live: "En vivo",
       pip_frozen: "Congelada",
+      pip_upload: "Subir foto",
+      pip_uploaded: "Foto subida",
+      pip_source_upload: "Foto subida",
+      pip_upload_note: "La foto se usa solo para esta respuesta, no se guarda.",
+      pip_empty_remote: "Sube una foto de tu formulario o carta, y pregúntame qué dice.",
+      chat_empty_remote: "Sube una foto de tu formulario o carta en la ventanita de abajo a la derecha. Luego pregúntame qué dice.",
+      pip_upload_error: "No pude leer esa foto. Intenta con otra imagen.",
       pip_empty: "La cámara está apagada. Actívala para que yo pueda ver tu documento.",
       pip_enable: "Activar cámara",
       pip_freeze: "Congelar",
@@ -57,6 +64,13 @@
       pip_off: "Off",
       pip_live: "Live",
       pip_frozen: "Frozen",
+      pip_upload: "Upload a photo",
+      pip_uploaded: "Photo uploaded",
+      pip_source_upload: "Uploaded photo",
+      pip_upload_note: "The photo is used for this answer only, it is not saved.",
+      pip_empty_remote: "Upload a photo of your form or letter, then ask me what it says.",
+      chat_empty_remote: "Upload a photo of your form or letter in the small window at the bottom right. Then ask me what it says.",
+      pip_upload_error: "I couldn't read that photo. Try another image.",
       pip_empty: "The camera is off. Turn it on so I can see your document.",
       pip_enable: "Enable camera",
       pip_freeze: "Freeze",
@@ -75,11 +89,46 @@
   var lang = "es";
   var t = function (key) { return I18N[lang][key] || I18N.es[key] || key; };
 
+  var params = new URLSearchParams(window.location.search);
+  var remoteMode = params.get("mode") === "remote";
+  var uploadedImage = null; /* base64 JPEG, no data: prefix, max 1024px */
+  var pipSource = "camera"; /* "camera" | "upload" */
+
+  /* Backend: same origin when served by the backend itself (tunnel
+     mode, one port), else the backend on :8001 next to a static server.
+     apiPost falls back to the other base if the first one 404s. */
+  function apiBases() {
+    var local = window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    var bases = local
+      ? ["http://127.0.0.1:8001", window.location.origin]
+      : [window.location.origin, "http://127.0.0.1:8001"];
+    return bases.filter(function (b, i) { return bases.indexOf(b) === i; });
+  }
+
+  async function apiPost(path, body) {
+    var bases = apiBases();
+    for (var i = 0; i < bases.length; i++) {
+      try {
+        var resp = await fetch(bases[i] + path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        if (resp.ok || resp.status === 503) return await resp.json();
+        if ((resp.status === 404 || resp.status === 501) && i + 1 < bases.length) continue;
+        return await resp.json().catch(function () { return null; });
+      } catch (e) { /* try the next base */ }
+    }
+    return null;
+  }
+
   var $ = function (id) { return document.getElementById(id); };
   var statusEl = $("status"), statusText = $("status-text");
   var chat = $("chat"), chatEmpty = $("chat-empty");
   var input = $("input"), micBtn = $("mic"), voiceNote = $("voice-note");
   var pip = $("pip"), pipVideo = $("pip-video"), pipCanvas = $("pip-canvas");
+  var pipImg = $("pip-img"), pipFile = $("pip-file"), pipBadge = $("pip-badge");
   var pipEmpty = $("pip-empty"), pipLive = $("pip-live");
   var pipFreeze = $("pip-freeze"), pipEnable = $("pip-enable");
   var pipRestore = $("pip-restore");
@@ -102,7 +151,14 @@
     $("lang-es").setAttribute("aria-pressed", String(next === "es"));
     $("lang-en").setAttribute("aria-pressed", String(next === "en"));
     pipFreeze.textContent = frozen ? t("pip_resume") : t("pip_freeze");
-    pipLive.textContent = stream ? (frozen ? t("pip_frozen") : t("pip_live")) : t("pip_off");
+    pipBadge.textContent = pipSource === "upload" ? t("pip_source_upload") : t("pip_source");
+    pipLive.textContent = pipSource === "upload" ? t("pip_uploaded")
+      : (stream ? (frozen ? t("pip_frozen") : t("pip_live")) : t("pip_off"));
+    if (remoteMode) {
+      if (chatEmpty) chatEmpty.textContent = t("chat_empty_remote");
+      if (!pipEmpty.hidden) pipEmpty.querySelector("p").textContent = t("pip_empty_remote");
+      pipEnable.hidden = true;
+    }
     setStatus(statusEl.getAttribute("data-state") || "idle");
   }
 
@@ -135,14 +191,21 @@
     } catch (e) { setStatus("idle"); }
   }
 
-  function answer(text) {
+  async function answer(text) {
     addMessage("user", text);
     setStatus("thinking");
-    window.setTimeout(function () {
-      var reply = t("demo_reply");
-      addMessage("agent", reply);
-      speak(reply);
-    }, 900);
+    /* Ask the backend (Ollama when it is up). If it cannot be reached
+       at all, fall back to the honest canned demo reply — never fake
+       a model answer. An uploaded photo goes to /api/vision. */
+    var data = null;
+    if (uploadedImage) {
+      data = await apiPost("/api/vision", { message: text, lang: lang, image_base64: uploadedImage });
+    } else {
+      data = await apiPost("/api/chat", { message: text, lang: lang });
+    }
+    var reply = (data && data.reply) ? data.reply : t("demo_reply");
+    addMessage("agent", reply);
+    speak(reply);
   }
 
   $("composer").addEventListener("submit", function (e) {
@@ -203,10 +266,60 @@
 
   /* --- Picture-in-Picture camera: starts only on a user tap --- */
   function setPipLive() {
-    pipLive.classList.toggle("is-off", !stream);
+    pipLive.classList.toggle("is-off", !stream && pipSource !== "upload");
     pipLive.classList.toggle("is-frozen", Boolean(stream && frozen));
-    pipLive.textContent = stream ? (frozen ? t("pip_frozen") : t("pip_live")) : t("pip_off");
+    pipLive.textContent = pipSource === "upload" ? t("pip_uploaded")
+      : (stream ? (frozen ? t("pip_frozen") : t("pip_live")) : t("pip_off"));
+    pipBadge.textContent = pipSource === "upload" ? t("pip_source_upload") : t("pip_source");
   }
+
+  /* --- Upload a photo (remote mode): downscale in-browser to max
+         1024px on the long edge, show it in the PiP, send it to
+         /api/vision with the next question. Used for this answer
+         only, never stored. --- */
+  function downscaleImage(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("read")); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error("image")); };
+        img.onload = function () {
+          var scale = Math.min(1, 1024 / Math.max(img.width, img.height));
+          var canvas = document.createElement("canvas");
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function showUploadedPhoto(dataUrl) {
+    uploadedImage = dataUrl.split(",")[1];
+    pipSource = "upload";
+    pipImg.src = dataUrl;
+    pipImg.hidden = false;
+    pipVideo.hidden = true;
+    pipEmpty.hidden = true;
+    pipFreeze.disabled = true;
+    setPipLive();
+  }
+
+  pipFile.addEventListener("change", function () {
+    var file = pipFile.files && pipFile.files[0];
+    pipFile.value = "";
+    if (!file) return;
+    downscaleImage(file).then(showUploadedPhoto).catch(function () {
+      pipEmpty.querySelector("p").textContent = t("pip_upload_error");
+    });
+  });
+
+  $("pip-upload").addEventListener("click", function () { pipFile.click(); });
+  $("pip-upload-empty").addEventListener("click", function () { pipFile.click(); });
 
   pipEnable.addEventListener("click", function () {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -229,7 +342,7 @@
   });
 
   pipFreeze.addEventListener("click", function () {
-    if (!stream) return;
+    if (!stream || pipSource === "upload") return;
     if (!frozen) {
       var w = pipVideo.videoWidth || 640, h = pipVideo.videoHeight || 480;
       pipCanvas.width = w; pipCanvas.height = h;
@@ -258,6 +371,10 @@
     if (stream) { stream.getTracks().forEach(function (tr) { tr.stop(); }); stream = null; }
     pipVideo.hidden = true;
     pipVideo.srcObject = null;
+    pipImg.hidden = true;
+    pipImg.src = "";
+    uploadedImage = null;
+    pipSource = "camera";
     pipEmpty.hidden = false;
     pipFreeze.disabled = true;
     frozen = false;
@@ -272,5 +389,12 @@
     pipRestore.hidden = true;
   });
 
-  setStatus("idle");
+  /* Remote mode (?mode=remote): upload is the way in, the camera
+     button is hidden. The camera is still available as a secondary
+     option if the browser has one — setLang hides the button on
+     every language switch, and the initial setLang call below
+     applies the remote copy on first load too. */
+  if (remoteMode) pipEnable.hidden = true;
+
+  setLang(lang);
 })();

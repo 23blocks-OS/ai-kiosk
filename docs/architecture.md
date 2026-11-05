@@ -1,7 +1,7 @@
 # Architecture
 
 ```
-Visitor
+Visitor (kiosk) / remote tester (browser, ?mode=remote)
   │
   ▼
 Web UI — full-screen Chromium kiosk mode (apps/kiosk-*)
@@ -9,13 +9,19 @@ Web UI — full-screen Chromium kiosk mode (apps/kiosk-*)
   │  served from the repo root on the Jetson
   ▼
 Local Python backend — FastAPI (services/agent-backend/)
-  │  http://127.0.0.1:8001, same box only
+  │  http://127.0.0.1:8001 in local dev; port 8000 when served
+  │  through the Cloudflare Tunnel (one origin, UI + API together)
   ▼
-Qwen3-VL 4B — one vision-language model (llama.cpp / Ollama)
+Ollama — Qwen3-VL 4B (http://localhost:11434, same box only)
   │  conversation + vision in one model, Apache 2.0
   ▼
 Whisper (speech-to-text) + Piper (text-to-speech), both local
 ```
+
+Remote testers reach the same backend through a Cloudflare Tunnel
+(`docs/remote-access.md`): `cloudflared` on the Jetson dials out to
+Cloudflare, no open ports, and the tunnel points ONLY at the backend
+on `localhost:8000`. Ollama on 11434 is never tunnelled.
 
 ## Why a web UI
 
@@ -41,9 +47,18 @@ PiP source by kiosk:
 
 | Kiosk | PiP source |
 | --- | --- |
-| Intercambio | USB webcam, pointed at a document |
+| Intercambio | USB webcam, pointed at a document — or, remote (`?mode=remote`), an uploaded photo of the document |
 | Shop Operator | Live screenshot of the shop's Windows PC |
 | Nonprofit | USB webcam, pointed at a document |
+
+## Concurrency (8 GB Jetson)
+
+The backend allows at most **2 concurrent model calls** (asyncio
+semaphore, `MAX_CONCURRENT_MODEL_CALLS`). 1 user gets full speed, 2
+get about half each, and a 3rd waits in line — after 30 s queued
+(`MAX_QUEUE_WAIT_SECONDS`) it gets HTTP 503 with a plain-language
+"you're next in line" reply in ES/EN. The model is one GPU shared by
+everyone; the web server itself is not the bottleneck.
 
 ## The model: one brain, not two
 
@@ -74,9 +89,10 @@ fine deployable text baseline if a text-only model is ever needed.
 
 | Piece | State |
 | --- | --- |
-| Intercambio front end | Working prototype (canned replies, honestly labelled) |
+| Intercambio front end | Working prototype, now calls the backend (Ollama when up, honest stub when not); remote upload mode (`?mode=remote`) |
 | Shop / Nonprofit front ends | Placeholder pages reusing the shell |
-| agent-backend `/health`, `/api/chat`, `/api/vision` | Stubs returning canned replies |
+| agent-backend `/health`, `/api/chat`, `/api/vision` | Wired to Ollama (Qwen3-VL 4B); honest stub fallback when Ollama is down; concurrency guard of 2 |
+| Cloudflare Tunnel | Docs + config only (`docs/remote-access.md`, `hardware/jetson/cloudflared/`) — not run yet, no token, no subdomain chosen |
 | Qwen3-VL 4B on the Jetson | Not installed yet — Saturday |
 | Whisper + Piper on the Jetson | Not installed yet — Saturday |
 | Website | Static page, real copy |

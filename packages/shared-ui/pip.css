@@ -70,13 +70,16 @@
 }
 
 .pip-body video,
-.pip-body canvas {
+.pip-body canvas,
+.pip-body img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
+.pip-body img { object-fit: contain; background: #000; }
 
 .pip-body canvas { display: none; }
 .pip.is-frozen .pip-body canvas { display: block; }
@@ -98,6 +101,12 @@
 }
 
 .pip-empty[hidden] { display: none; }
+
+.pip-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9aa3ab;
+}
 
 .pip-controls {
   display: flex;
