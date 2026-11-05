@@ -1,0 +1,77 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #f6f3ec;
+  color: #1c2228;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  line-height: 1.55;
+}
+::selection { background: #f5c86b; color: #1c2228; }
+a { color: #14532d; text-underline-offset: 3px; }
+a:hover { color: #0f4023; }
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.brand { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+.site-header nav { display: flex; gap: 24px; }
+.site-header nav a { font-weight: 600; text-decoration: none; }
+
+main { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+.hero { padding: 72px 0 56px; }
+.hero h1 {
+  margin: 0 0 20px;
+  font-size: clamp(2.6rem, 6vw, 4.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.lede { font-size: 1.35rem; line-height: 1.5; color: #5c665f; max-width: 60ch; }
+.cta {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 16px 28px;
+  border-radius: 999px;
+  background: #14532d;
+  color: #f4f1ea;
+  font-weight: 700;
+  text-decoration: none;
+}
+.cta:hover { background: #0f4023; color: #f4f1ea; }
+
+section { padding: 40px 0; }
+h2 { font-size: 2rem; letter-spacing: -0.02em; margin: 0 0 20px; }
+h3 { font-size: 1.4rem; margin: 0 0 8px; }
+
+.kiosks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.kiosks h2 { grid-column: 1 / -1; }
+.kiosks article {
+  background: #fff;
+  border: 1px solid #d8d2c4;
+  border-radius: 16px;
+  padding: 28px;
+}
+.kiosks article p { margin: 0 0 12px; }
+
+.how ol { margin: 0; padding-left: 24px; display: grid; gap: 14px; font-size: 1.15rem; }
+.how p { max-width: 70ch; }
+.privacy p { max-width: 70ch; font-size: 1.15rem; }
+
+footer {
+  border-top: 1px solid #d8d2c4;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+  color: #5c665f;
+}

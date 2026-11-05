@@ -1,0 +1,166 @@
+/* Picture-in-Picture: what the agent is seeing.
+   Shared by all kiosks. Small by default, bottom-right, always on top.
+   Tap to expand full-screen; tap again to shrink. */
+
+.pip {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(30vw, 420px);
+  z-index: 40;
+  background: #101418;
+  color: #f4f1ea;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(16, 20, 24, 0.35);
+  cursor: pointer;
+}
+
+.pip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pip-header .pip-title { flex: 1; }
+
+.pip-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #2a3430;
+  color: #bfe3cf;
+  white-space: nowrap;
+}
+
+.pip-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7ddba0;
+}
+
+.pip-live::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #34c759;
+}
+
+.pip-live.is-frozen { color: #f5c86b; }
+.pip-live.is-frozen::before { background: #f5c86b; }
+.pip-live.is-off { color: #9aa3ab; }
+.pip-live.is-off::before { background: #9aa3ab; }
+
+.pip-body {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #1c2228;
+}
+
+.pip-body video,
+.pip-body canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pip-body canvas { display: none; }
+.pip.is-frozen .pip-body canvas { display: block; }
+.pip.is-frozen .pip-body video { visibility: hidden; }
+
+.pip-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  text-align: center;
+  color: #c9d1d6;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.pip-empty[hidden] { display: none; }
+
+.pip-controls {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #101418;
+}
+
+.pip-controls button {
+  flex: 1;
+  min-height: 48px;
+  border: 1px solid #3a454e;
+  border-radius: 12px;
+  background: #1c2228;
+  color: #f4f1ea;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pip-controls button:hover { background: #262e35; }
+.pip-controls button:focus-visible { outline: 3px solid #f5c86b; outline-offset: 2px; }
+
+.pip-close {
+  flex: 0 0 auto;
+  min-width: 48px;
+  padding: 0 14px;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.pip.is-expanded {
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100dvh;
+  border-radius: 0;
+}
+
+.pip.is-expanded .pip-body { aspect-ratio: auto; height: calc(100dvh - 130px); }
+.pip.is-expanded .pip-body video,
+.pip.is-expanded .pip-body canvas { object-fit: contain; background: #000; }
+
+.pip.is-hidden { display: none; }
+
+.pip-restore {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  min-height: 56px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: #101418;
+  color: #f4f1ea;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(16, 20, 24, 0.35);
+}
+
+.pip-restore[hidden] { display: none; }
+.pip-restore:focus-visible { outline: 3px solid #f5c86b; outline-offset: 2px; }

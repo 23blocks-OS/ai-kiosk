@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Kiosk — local AI help, in the room</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <p class="brand">AI Kiosk</p>
+  <nav><a href="#kiosks">Kiosks</a><a href="#how">How it works</a><a href="#privacy">Privacy</a></nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Local AI help, in the room.</h1>
+    <p class="lede">A small box with a screen, a camera, and an agent that runs
+    entirely on the device. No account, no cloud, no recording. You can
+    always see what the agent is seeing.</p>
+    <p><a class="cta" href="https://github.com/23blocks-OS/ai-kiosk">See the code on GitHub</a></p>
+  </section>
+
+  <section id="kiosks" class="kiosks">
+    <h2>Three kiosks, one box</h2>
+    <article>
+      <h3>Intercambio</h3>
+      <p>For Spanish-speaking newcomers at a community center. The agent
+      reads a form or letter under the camera, explains it, translates it,
+      and helps with the next step. Building first.</p>
+      <p><a href="../kiosk-intercambio/">Try the prototype</a></p>
+    </article>
+    <article>
+      <h3>Shop Operator</h3>
+      <p>For small shops running legacy Windows software. The agent looks
+      at the shop's screen and operates it — appointments, records, the
+      work the software was already built for.</p>
+      <p>Phase 2</p>
+    </article>
+    <article>
+      <h3>Nonprofit</h3>
+      <p>For small nonprofits in Boulder County. Intake, scheduling, and
+      translation, with client data staying inside the organization.</p>
+      <p>Phase 2</p>
+    </article>
+  </section>
+
+  <section id="how" class="how">
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>You talk to the agent</strong> — tap the mic or type, in Spanish or English.</li>
+      <li><strong>The agent looks</strong> — the small window shows exactly what it sees: your document, or the shop's screen.</li>
+      <li><strong>It answers here</strong> — in the room, on the device. Nothing is sent anywhere.</li>
+    </ol>
+    <p>The agent is one vision-language model (Qwen3-VL 4B) running on a
+    Jetson Orin Nano in the box, with local speech recognition and speech
+    synthesis. Details in <a href="../docs/architecture.md">docs/architecture.md</a>.</p>
+  </section>
+
+  <section id="privacy" class="privacy">
+    <h2>Private by construction</h2>
+    <p>Nothing is recorded. Nothing leaves the device. The camera starts
+    only when you tap to enable it, and the Picture-in-Picture window lets
+    you see — and hide — what the agent sees at any moment.</p>
+  </section>
+</main>
+
+<footer>
+  <p>AI Kiosk — an open project by 23blocks-OS. Intercambio prototype first; Shop and Nonprofit to follow.</p>
+</footer>
+</body>
+</html>
