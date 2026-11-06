@@ -75,18 +75,24 @@ To restrict testers later, add **Cloudflare Access** (Zero Trust) on
 the same hostname: allow only listed email addresses. No code change
 is needed for that.
 
-## Authenticated identity — Auth API device flow (available 2026-11-06)
+## Authenticated identity — Auth API device flow (NOT live yet, 2026-11-06)
 
 Where an authenticated identity is actually needed (for example
 registering the Jetson itself, or a future remote-access path that
-must know who is calling), the 23blocks Auth API now ships the
-**OAuth 2.0 Device Authorization Grant (RFC 8628)** — live
-v4.52.12 at `https://auth.api.us.23blocks.com` (repo
-`23blocks/blocks-auth-api`, issue #113, PRs #123–125). It fits a
-kiosk exactly: the Jetson shows a short code on its screen
-(`ABCD-1234` format) and approval happens on a phone — no keyboard,
-no pasted secrets.
+must know who is calling), the **OAuth 2.0 Device Authorization
+Grant (RFC 8628)** is the design — code merged to
+`23blocks/blocks-auth-api` development only (issue #113, PRs
+#123–125). It is **not in the deployed build yet**: the live probe
+at 14:03 MST on v4.52.12 returned 404 for the route, and the 401
+seen without a key proves only that the auth middleware is alive,
+not that the route exists. At 14:58 MST `/health` reported v6.1.2,
+so a deploy happened in between — but the route is still unproven
+without a company API key. The decisive test is
+`POST /device/authorize` via the Operario proxy with the
+publishable key: a 200 with codes settles it. (Correction: earlier
+notes in this repo called the flow "live" — that was wrong.)
 
+Once deployed, the flow is:
 - Device asks: `POST /device/authorize` with the company API key
   (`X-API-KEY` header), optional `client_id` and `scope`. Returns
   `device_code`, `user_code`, `verification_uri` and
@@ -114,11 +120,15 @@ or sign-ins to the visitor flow. Visitors still walk up, tap, and
 talk, with nothing to log into.
 
 **Two gaps, open:**
-- The verification page is **not built** (`DEVICE_VERIFICATION_URI`
-  env; the API code says "not built yet"). Either build it, or call
-  the verify endpoint from an existing logged-in frontend.
-- The feature flag (`DEVICE_FLOW_ENABLED=true`) is unconfirmed in
-  production from outside: the endpoint is live — re-verified
-  2026-11-06, `POST /device/authorize` answers 401 without a key,
-  not a routing 404 — but the first real call with a company API
-  key settles it.
+- Deploy + env: the Auth API code must be deployed, then
+  `DEVICE_FLOW_ENABLED=true` and
+  `DEVICE_VERIFICATION_URI=https://app.operario.tech/device` set.
+  Do NOT deploy without Juan's word (normal flow: PR → development
+  → staging → tag → production). Operario issues #13/#14 stay open
+  until the live probe passes.
+- Verification page: the Auth API's own page is still not built —
+  but the Operario side is DONE 2026-11-06 (PR #18, commit
+  6e7e1a1): the server proxies the flow holding the company key,
+  `GET /device` is the console approval page, and the installers
+  sign in through it. So the kiosk path would use the Operario
+  console page, not the Auth API's.
