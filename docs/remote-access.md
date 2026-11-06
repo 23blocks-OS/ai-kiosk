@@ -74,3 +74,51 @@ which could never get a certificate).
 To restrict testers later, add **Cloudflare Access** (Zero Trust) on
 the same hostname: allow only listed email addresses. No code change
 is needed for that.
+
+## Authenticated identity — Auth API device flow (available 2026-11-06)
+
+Where an authenticated identity is actually needed (for example
+registering the Jetson itself, or a future remote-access path that
+must know who is calling), the 23blocks Auth API now ships the
+**OAuth 2.0 Device Authorization Grant (RFC 8628)** — live
+v4.52.12 at `https://auth.api.us.23blocks.com` (repo
+`23blocks/blocks-auth-api`, issue #113, PRs #123–125). It fits a
+kiosk exactly: the Jetson shows a short code on its screen
+(`ABCD-1234` format) and approval happens on a phone — no keyboard,
+no pasted secrets.
+
+- Device asks: `POST /device/authorize` with the company API key
+  (`X-API-KEY` header), optional `client_id` and `scope`. Returns
+  `device_code`, `user_code`, `verification_uri` and
+  `verification_uri_complete`. Codes live 10 minutes, poll every
+  5 seconds.
+- User approves: opens the verification URI on their phone, logs
+  in, enters the code, approves or denies.
+  `POST /apps/:app_url_id/device/verify` with the user's Bearer
+  JWT, `user_code` + `action_type` (approve/deny). Approval checks
+  the user holds the requested scopes.
+- Device polls: `POST /:company_url_id/oauth/token` with
+  `grant_type=urn:ietf:params:oauth:grant-type:device_code` and the
+  `device_code`. Answers: `authorization_pending`, `slow_down`
+  (polling too fast, +5 s penalty), `access_denied`, `expired_token`.
+- On approval: a 5-minute RS256 Bearer token, single-use, default
+  scope `devices:register`. The code is then consumed.
+- Rate limits: 20/IP/10 min, 30/key/10 min. The company API key
+  stays server-side on the Jetson; it is never in the repo or in
+  the browser.
+
+**Scope guard (standing):** the Intercambio kiosk is no-account,
+data never leaves the box. This flow is for the *device / operator*
+identity where one is actually needed — it does **not** add accounts
+or sign-ins to the visitor flow. Visitors still walk up, tap, and
+talk, with nothing to log into.
+
+**Two gaps, open:**
+- The verification page is **not built** (`DEVICE_VERIFICATION_URI`
+  env; the API code says "not built yet"). Either build it, or call
+  the verify endpoint from an existing logged-in frontend.
+- The feature flag (`DEVICE_FLOW_ENABLED=true`) is unconfirmed in
+  production from outside: the endpoint is live — re-verified
+  2026-11-06, `POST /device/authorize` answers 401 without a key,
+  not a routing 404 — but the first real call with a company API
+  key settles it.
