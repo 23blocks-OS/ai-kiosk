@@ -75,22 +75,21 @@ To restrict testers later, add **Cloudflare Access** (Zero Trust) on
 the same hostname: allow only listed email addresses. No code change
 is needed for that.
 
-## Authenticated identity — Auth API device flow (NOT live yet, 2026-11-06)
+## Authenticated identity — Auth API device flow (LIVE 2026-11-06 ~21:10 MST)
 
 Where an authenticated identity is actually needed (for example
 registering the Jetson itself, or a future remote-access path that
 must know who is calling), the **OAuth 2.0 Device Authorization
-Grant (RFC 8628)** is the design — code merged to
-`23blocks/blocks-auth-api` development only (issue #113, PRs
-#123–125). It is **not in the deployed build yet**: the live probe
-at 14:03 MST on v4.52.12 returned 404 for the route, and the 401
-seen without a key proves only that the auth middleware is alive,
-not that the route exists. At 14:58 MST `/health` reported v6.1.2,
-so a deploy happened in between — but the route is still unproven
-without a company API key. The decisive test is
-`POST /device/authorize` via the Operario proxy with the
-publishable key: a 200 with codes settles it. (Correction: earlier
-notes in this repo called the flow "live" — that was wrong.)
+Grant (RFC 8628)** is now **live**: Auth API v6.2.2, Operario
+v0.4.9. `POST /device/authorize` via the Operario proxy returns
+200 with codes; the verification URI is
+`https://app.operario.tech/device/verify` and a GET on it returns
+200 with the approval page. The route is `GET /device/verify` per
+the Auth API spec; `GET /device` serves the same page as an alias.
+Operario issues #13/#14 are closed with the probe result. (History:
+earlier on 2026-11-06 the flow was wrongly called live, then
+corrected to not-live — the 21:10 probe is the first real
+confirmation.)
 
 Once deployed, the flow is:
 - Device asks: `POST /device/authorize` with the company API key
@@ -119,16 +118,8 @@ identity where one is actually needed — it does **not** add accounts
 or sign-ins to the visitor flow. Visitors still walk up, tap, and
 talk, with nothing to log into.
 
-**Two gaps, open:**
-- Deploy + env: the Auth API code must be deployed, then
-  `DEVICE_FLOW_ENABLED=true` and
-  `DEVICE_VERIFICATION_URI=https://app.operario.tech/device` set.
-  Do NOT deploy without Juan's word (normal flow: PR → development
-  → staging → tag → production). Operario issues #13/#14 stay open
-  until the live probe passes.
-- Verification page: the Auth API's own page is still not built —
-  but the Operario side is DONE 2026-11-06 (PR #18, commit
-  6e7e1a1): the server proxies the flow holding the company key,
-  `GET /device` is the console approval page, and the installers
-  sign in through it. So the kiosk path would use the Operario
-  console page, not the Auth API's.
+**Still unproven:** a real approval + token exchange + device
+register on actual hardware — the probe proves the flow works, not
+that an installer has completed it. (History: the flow was wrongly
+called live earlier on 2026-11-06, corrected to not-live in
+69c882e, and confirmed live by the 21:10 probe.)
