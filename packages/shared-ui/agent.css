@@ -228,6 +228,23 @@
   .agent-visual[data-state="thinking"]::before { opacity: 0.4; }
 }
 
+.header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 22px;
+  border: 2px solid #14532d;
+  border-radius: 999px;
+  color: #14532d;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-button:focus-visible { outline: 3px solid #f5c86b; outline-offset: 2px; }
+
 .lang-toggle {
   display: inline-flex;
   border: 2px solid #14532d;

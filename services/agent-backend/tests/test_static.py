@@ -95,6 +95,13 @@ def test_kiosk_api_and_health_need_no_key():
     assert client.post("/api/chat", json={"message": "hi"}).status_code in (200, 503)
 
 
+def test_kiosk_has_home_button_and_idle_reset():
+    page = client.get("/apps/kiosk-intercambio/").text
+    assert 'id="home"' in page and 'href="../launcher/"' in page
+    js = client.get("/apps/kiosk-intercambio/app.js").text
+    assert "IDLE_SECONDS" in js and "../launcher/" in js
+
+
 def test_app_only_host_has_no_v1(tmp_path, monkeypatch):
     _keys(tmp_path, monkeypatch, {"alice": "k-alice"})
     monkeypatch.setattr(main, "APP_ONLY_HOSTS", {"kiosk.ciaocorp.com"})
