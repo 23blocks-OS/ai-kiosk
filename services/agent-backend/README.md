@@ -95,3 +95,5 @@ curl https://aureliano.twofourai.com/v1/chat/completions \
 **Users and keys** live in `services/agent-backend/api-keys.json`: `{"name": "key", ...}`. The file is read on every request, so edits apply at once. It is in `.gitignore` and never goes to GitHub; `api-keys.example.json` shows the shape. Add a user: `openssl rand -hex 24`, then add the line. Remove a user: delete the line. No file means the API is closed.
 
 The kiosk page's own `/api/chat`, `/api/vision` and `/health` stay open, because a public page cannot hold a secret.
+
+**App-only hostnames.** `APP_ONLY_HOSTS=kiosk.ciaocorp.com` makes `/v1/*` a 404 on that hostname, even with a valid key. The team hostname (`aureliano.twofourai.com`) and the tailnet keep both the app and the API.
