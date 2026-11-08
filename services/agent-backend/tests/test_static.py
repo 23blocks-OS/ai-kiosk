@@ -34,3 +34,19 @@ def test_repo_internals_are_not_served():
         "/apps/%2e%2e/.git/config",
     ):
         assert client.get(path).status_code == 404, path
+
+
+def test_root_goes_to_selector_and_keeps_query():
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (302, 307) and r.headers["location"] == "/apps/launcher/"
+    r = client.get("/?mode=remote", follow_redirects=False)
+    assert r.headers["location"] == "/apps/launcher/?mode=remote"
+
+
+def test_selector_page_and_its_target_exist():
+    page = client.get("/apps/launcher/")
+    assert page.status_code == 200
+    assert 'href="../kiosk-intercambio/"' in page.text
+    assert client.get("/apps/launcher/app.js").status_code == 200
+    assert client.get("/apps/launcher/styles.css").status_code == 200
+    assert client.get("/apps/kiosk-intercambio/").status_code == 200
