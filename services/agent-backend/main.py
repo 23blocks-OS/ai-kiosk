@@ -248,6 +248,19 @@ async def vision(request: Request):
     )
 
 
+# Hostnames that get the kiosk app only: /v1/* is a 404 there, even with a key.
+# Set APP_ONLY_HOSTS=kiosk.ciaocorp.com (comma-separated for more).
+APP_ONLY_HOSTS = {h.strip().lower() for h in os.environ.get("APP_ONLY_HOSTS", "").split(",") if h.strip()}
+
+
+@app.middleware("http")
+async def _app_only_hosts(request: Request, call_next):
+    host = request.headers.get("host", "").split(":")[0].lower()
+    if request.url.path.startswith("/v1") and host in APP_ONLY_HOSTS:
+        return JSONResponse(status_code=404, content={"error": {"message": "Not found."}})
+    return await call_next(request)
+
+
 # ---- Team API: OpenAI-compatible, every caller needs an API key ----------
 # The kiosk page's own /api/* stays open (a public page cannot hold a secret).
 # /v1/* is for people and agents, on the tunnel and on the tailnet alike.
