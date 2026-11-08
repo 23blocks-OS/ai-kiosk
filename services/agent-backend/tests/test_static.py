@@ -90,9 +90,14 @@ def test_v1_rejects_streaming(tmp_path, monkeypatch):
     assert r.status_code == 400
 
 
-def test_kiosk_api_and_health_need_no_key():
+def test_kiosk_api_and_health_need_no_key(monkeypatch):
+    async def fake_model(message, lang, image_base64):
+        return "ok"  # never call the real model from a test
+
+    monkeypatch.setattr(main, "_call_ollama", fake_model)
     assert client.get("/health").status_code == 200
-    assert client.post("/api/chat", json={"message": "hi"}).status_code in (200, 503)
+    r = client.post("/api/chat", json={"message": "hi"})  # no key
+    assert r.status_code == 200 and r.json()["reply"] == "ok"
 
 
 def test_kiosk_has_home_button_and_idle_reset():
