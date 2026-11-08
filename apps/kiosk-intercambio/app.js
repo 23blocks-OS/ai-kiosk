@@ -7,6 +7,7 @@
 
   var I18N = {
     es: {
+      home: "Inicio",
       title: "Ayuda con formularios",
       subtitle: "Te leo el papel, te lo explico y te ayudo con el siguiente paso.",
       status_idle: "Estoy lista para ayudarte",
@@ -52,6 +53,7 @@
       demo_reply: "Esto es una demostración: todavía no estoy conectado al modelo local. Cuando el Jetson esté listo, leeré el documento que se ve en la ventanita y te lo explicaré aquí."
     },
     en: {
+      home: "Home",
       title: "Help with forms",
       subtitle: "I read the paper for you, explain it, and help with the next step.",
       status_idle: "I'm ready to help",
@@ -99,6 +101,7 @@
   };
 
   var lang = "es";
+  try { if (sessionStorage.getItem("kiosk-lang") === "en") lang = "en"; } catch (e) { /* storage off: Spanish */ }
   var t = function (key) { return I18N[lang][key] || I18N.es[key] || key; };
 
   var params = new URLSearchParams(window.location.search);
@@ -184,6 +187,7 @@
 
   function setLang(next) {
     lang = next;
+    try { sessionStorage.setItem("kiosk-lang", next); } catch (e) { /* ignore */ }
     document.documentElement.lang = next;
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
       el.textContent = t(el.getAttribute("data-i18n"));
@@ -480,6 +484,30 @@
      every language switch, and the initial setLang call below
      applies the remote copy on first load too. */
   if (remoteMode) pipEnable.hidden = true;
+
+  /* --- Back to the selector: Home button and idle reset ---
+     Nothing in this page is stored, so leaving it ends the camera and
+     clears the chat and the photo. After IDLE_SECONDS with no touch the
+     page goes home, and the next visitor starts clean (language too).
+     ?idle=N sets the delay in seconds (default 180). */
+  var homeUrl = "../launcher/" + window.location.search;
+  $("home").setAttribute("href", homeUrl);
+  var IDLE_SECONDS = Number(params.get("idle")) || 180;
+  var idleTimer = null;
+  function armIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      var state = statusEl.getAttribute("data-state");
+      if (state === "thinking" || state === "listening") { armIdle(); return; }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      try { sessionStorage.removeItem("kiosk-lang"); } catch (e) { /* ignore */ }
+      window.location.href = homeUrl;
+    }, IDLE_SECONDS * 1000);
+  }
+  ["pointerdown", "keydown", "touchstart", "input"].forEach(function (ev) {
+    document.addEventListener(ev, armIdle, true);
+  });
+  armIdle();
 
   setLang(lang);
 })();

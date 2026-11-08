@@ -93,3 +93,10 @@ def test_v1_rejects_streaming(tmp_path, monkeypatch):
 def test_kiosk_api_and_health_need_no_key():
     assert client.get("/health").status_code == 200
     assert client.post("/api/chat", json={"message": "hi"}).status_code in (200, 503)
+
+
+def test_kiosk_has_home_button_and_idle_reset():
+    page = client.get("/apps/kiosk-intercambio/").text
+    assert 'id="home"' in page and 'href="../launcher/"' in page
+    js = client.get("/apps/kiosk-intercambio/app.js").text
+    assert "IDLE_SECONDS" in js and "../launcher/" in js
