@@ -29,6 +29,7 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | 10 | [#17](https://github.com/23blocks-OS/ai-kiosk/issues/17) | nice-to-have | Remove the `127.0.0.1:8001` fallback for non-local pages | — | open |
 | 11 | [#18](https://github.com/23blocks-OS/ai-kiosk/issues/18) | nice-to-have | Delete two unused `lang` parameters | — | open |
 | 12 | [#19](https://github.com/23blocks-OS/ai-kiosk/issues/19) | nice-to-have | Fix the broken link in `apps/website/index.html` | — | open |
+| — | [#24](https://github.com/23blocks-OS/ai-kiosk/issues/24) | should-fix | Timeout shows "no local model connected", a false message (follow-up of #23) | — | open |
 | 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
 
 ## Ideas (no issue yet)
@@ -42,4 +43,5 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 - 2026-11-08 — Repo-root leak closed (PR #1). Selector (PR #2). Team API with keys (PR #3). Backend live on Aurelium.
 - 2026-11-08 — `kiosk.ciaocorp.com` gets the app only (PR #4). Checked from outside: `/v1` is 404 there, even with a key.
 - 2026-11-08 — Home button and idle reset (PR #6). Wiki (PR #5).
+- 2026-11-08 — Kiosk STUB bug ([#23](https://github.com/23blocks-OS/ai-kiosk/issues/23)): switched to the instruct model. Checked from outside.
 - 2026-11-08 — Record repo pushed to `3Metas/ciao-kiosk`.

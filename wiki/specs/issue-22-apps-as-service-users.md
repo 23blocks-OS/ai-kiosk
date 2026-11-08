@@ -38,7 +38,7 @@ Every route that reaches the model needs an API key. The kiosk apps are named se
 - `apps/kiosk-intercambio/app.js`: `apiPost` header and the 401/403 message (plus ES/EN text).
 - `services/agent-backend/api-keys.example.json`: add an `app:intercambio` line.
 - `services/agent-backend/tests/`: new tests (below).
-- `services/agent-backend/README.md`, `wiki/decisions/` (new decision 0007), `wiki/aurelium.md`.
+- `services/agent-backend/README.md`, `wiki/decisions/` (new decision 0008), `wiki/aurelium.md`.
 - On Aurelium: add `app:intercambio` to `api-keys.json`.
 
 ## Steps
