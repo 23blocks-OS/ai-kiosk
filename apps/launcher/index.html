@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Kiosk — Elige una experiencia</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="launcher">
+  <header>
+    <div>
+      <h1 data-i18n="title">Elige una experiencia</h1>
+      <p class="subtitle" data-i18n="subtitle">Un equipo, un agente. Todo corre en este equipo. Toca una opción para empezar.</p>
+    </div>
+    <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+      <button type="button" id="lang-es" aria-pressed="true">Español</button>
+      <button type="button" id="lang-en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <ul class="cards">
+    <li>
+      <a class="card" href="../kiosk-intercambio/" data-keep-query>
+        <h2 data-i18n="nonprofit_name">Organización sin fines de lucro</h2>
+        <p data-i18n="nonprofit_desc">Ayuda con formularios y cartas para personas recién llegadas. Lee el papel, lo explica y lo traduce.</p>
+        <span class="tag live" data-i18n="live">Disponible</span>
+      </a>
+    </li>
+    <li>
+      <div class="card is-soon" aria-disabled="true">
+        <h2 data-i18n="shop_name">Operador de tienda</h2>
+        <p data-i18n="shop_desc">Ayuda a pequeños negocios con su programa de Windows de siempre.</p>
+        <span class="tag" data-i18n="soon">Próximamente</span>
+      </div>
+    </li>
+    <li>
+      <div class="card is-soon" aria-disabled="true">
+        <h2 data-i18n="lifeboat_name">Lifeboat</h2>
+        <p data-i18n="lifeboat_desc">Pasos de emergencia tomados de manuales reales, cuando todo lo demás falla.</p>
+        <span class="tag" data-i18n="soon">Próximamente</span>
+      </div>
+    </li>
+  </ul>
+
+  <p class="privacy" data-i18n="privacy">Nada se graba. Nada sale de este equipo.</p>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@ import os
 
 import httpx
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -241,6 +241,12 @@ async def vision(request: Request):
             "bytes_received": n_bytes,
         },
     )
+
+
+@app.get("/", include_in_schema=False)
+async def root(request: Request):
+    query = f"?{request.url.query}" if request.url.query else ""
+    return RedirectResponse(f"/apps/launcher/{query}")
 
 
 # Serve the kiosk UI from the same port when run from the repo root
