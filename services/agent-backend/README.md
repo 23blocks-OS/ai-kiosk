@@ -77,3 +77,21 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 license. Wrong tool for a bilingual vision kiosk. Voice (Whisper +
 Piper, both local) is not wired into the backend yet — the prototype
 front end uses the browser Web Speech API as a stand-in.
+
+## Team API (`/v1/*`): OpenAI-compatible, API key required
+
+For people and agents, on the Cloudflare Tunnel and on the tailnet. Same rule everywhere: every call needs a key.
+
+- `GET /v1/models` lists the models installed in Ollama.
+- `POST /v1/chat/completions` passes the request to Ollama (text and images, any installed model). `stream` is not supported. It shares the 2-call limit with the kiosk.
+- Send `Authorization: Bearer <key>` (or `X-API-Key: <key>`).
+
+```bash
+curl https://aureliano.twofourai.com/v1/chat/completions \
+  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+  -d '{"model":"qwen3-vl:4b","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+**Users and keys** live in `services/agent-backend/api-keys.json`: `{"name": "key", ...}`. The file is read on every request, so edits apply at once. It is in `.gitignore` and never goes to GitHub; `api-keys.example.json` shows the shape. Add a user: `openssl rand -hex 24`, then add the line. Remove a user: delete the line. No file means the API is closed.
+
+The kiosk page's own `/api/chat`, `/api/vision` and `/health` stay open, because a public page cannot hold a secret.
