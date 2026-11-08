@@ -246,6 +246,13 @@ async def vision(request: Request):
 # Serve the kiosk UI from the same port when run from the repo root
 # (this is how the Cloudflare Tunnel mode works: one port, one origin).
 # Local dev can still use a plain static server + the backend on 8001.
+# Mount ONLY what the UI needs. Never the repo root: that would publish
+# /.git/, the backend source and any .env through the tunnel.
 _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if os.path.isdir(os.path.join(_REPO_ROOT, "apps", "kiosk-intercambio")):
-    app.mount("/", StaticFiles(directory=_REPO_ROOT, html=True), name="static")
+    app.mount("/apps", StaticFiles(directory=os.path.join(_REPO_ROOT, "apps"), html=True), name="apps")
+    app.mount(
+        "/packages/shared-ui",
+        StaticFiles(directory=os.path.join(_REPO_ROOT, "packages", "shared-ui")),
+        name="shared-ui",
+    )

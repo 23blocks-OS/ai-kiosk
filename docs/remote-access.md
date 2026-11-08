@@ -39,8 +39,8 @@ Ollama — Qwen3-VL 4B
 
 **The tunnel points ONLY at the backend on `localhost:8000`.**
 Ollama on port 11434 is never tunnelled and never exposed. The
-backend serves the kiosk UI itself from that port (it mounts the
-repo's static files), so remote testers use one origin and one
+backend serves the kiosk UI itself from that port (it mounts only
+`apps/` and `packages/shared-ui/`), so remote testers use one origin and one
 `https://` link — no second port, no CORS.
 
 Remote PiP: there is no webcam to point at a document online, so the

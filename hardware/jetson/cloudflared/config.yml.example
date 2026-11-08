@@ -6,7 +6,7 @@ credentials-file: /home/jetson/.cloudflared/TUNNEL-ID-PLACEHOLDER.json
 
 ingress:
   # The kiosk app + backend, served by agent-backend on port 8000.
-  # The backend mounts the repo's static files, so one origin serves
+  # The backend mounts only apps/ and packages/shared-ui/, so one origin serves
   # both the UI and /api/*. Ollama on 11434 is NEVER an ingress rule.
   - hostname: kiosk.ciaocorp.com
     service: http://localhost:8000
