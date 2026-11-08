@@ -1,25 +1,39 @@
 # Backlog
 
-Priority order. Move done items to the bottom with the date. `Juan` means it needs his sudo or his decision.
+Priority order. Every audit finding has a GitHub issue and a row here. When we decide to work on an item, `ciao-kiosk` writes a spec in `specs/` first ([template](specs/TEMPLATE.md)), then builds. Move finished items to Done with the date.
 
-## Now
-1. **Reboot survival.** Juan runs `sudo loginctl enable-linger jpelaez` on Aurelium. Without it, the backend stops at reboot.
+## Needs Juan (sudo or a decision)
+- **Reboot survival.** Run `sudo loginctl enable-linger jpelaez` on Aurelium. Without it, the backend stops at reboot.
+- **Keep the model loaded for `/v1`.** `OLLAMA_KEEP_ALIVE` on the Ollama service needs sudo. Part of [#10](https://github.com/23blocks-OS/ai-kiosk/issues/10).
+- **Who stops a visitor from holding the GPU?** Cloudflare rate-limit rule (no code) or a backend limit. Decides [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9).
+- **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
-## Next
-2. **Cold start.** The first call after idle took about 2 minutes. Keep the model loaded (`OLLAMA_KEEP_ALIVE`; needs Juan's sudo).
-3. **Upload size cap** on `/api/vision`. Today it has none.
-4. **Fix the stale cloudflared docs.** The tunnel is managed in the Cloudflare dashboard and runs as a service. The docs describe a local config and `/home/jetson`.
-5. **Per-kiosk prompt.** `/api/chat` has one Intercambio prompt. Add a `kiosk` field when a second kiosk needs different behavior.
-6. **Streaming for `/v1`.** Not supported now. Many OpenAI clients stream.
+## Audit findings (ponytail audit, 2026-11-08)
 
-## Later
-7. Remove the unlinked `apps/kiosk-nonprofit/` stub.
-8. Fix the broken link `apps/website/index.html` to `../docs/architecture.md`.
-9. Whisper and Piper (voice) are not installed on Aurelium.
-10. CORS, only if browser apps on other sites will call the API.
-11. Cloudflare Access on `aureliano.twofourai.com`. Optional now that keys exist.
-12. PR #1 commit is authored as "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
-13. **Kiosk page API has no key.** `/api/chat` and `/api/vision` reach Ollama without a key, because the public page cannot hold a secret. Anyone can call them with curl. Options: leave it (demo, 2-call limit), a rate limit per IP, or Cloudflare Access on `aureliano.twofourai.com` only. Needs Juan's decision.
+Finding numbers are from the audit report. Issue numbers are GitHub's.
+
+| # | Issue | Level | What | Spec | Status |
+| --- | --- | --- | --- | --- | --- |
+| 1 | [#8](https://github.com/23blocks-OS/ai-kiosk/issues/8) | must-fix | Public routes accept unlimited request size (out-of-memory risk) | — | open |
+| 2 | [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9) | must-fix | Any visitor can hold the GPU and block everyone, team API included | — | open, needs Juan |
+| 3 | [#10](https://github.com/23blocks-OS/ai-kiosk/issues/10) | must-fix | First request after idle fails (cold start longer than Cloudflare's limit) | — | open |
+| 4 | [#11](https://github.com/23blocks-OS/ai-kiosk/issues/11) | should-fix | `/v1` returns 500 on a JSON list body or a bad key file | — | open |
+| 5 | [#12](https://github.com/23blocks-OS/ai-kiosk/issues/12) | should-fix | No tests for the honest fallback, the queue 503 and `/api/vision` | — | open |
+| 6 | [#13](https://github.com/23blocks-OS/ai-kiosk/issues/13) | should-fix | Kiosk lets a visitor send many messages while the agent is thinking | — | open |
+| 7 | [#14](https://github.com/23blocks-OS/ai-kiosk/issues/14) | should-fix | Pin Python package versions, add dev requirements | — | open |
+| 8 | [#15](https://github.com/23blocks-OS/ai-kiosk/issues/15) | should-fix | Setup docs describe a setup that is not running | — | open |
+| 9 | [#16](https://github.com/23blocks-OS/ai-kiosk/issues/16) | should-fix | Delete three unlinked placeholder kiosk pages | — | open |
+| 10 | [#17](https://github.com/23blocks-OS/ai-kiosk/issues/17) | nice-to-have | Remove the `127.0.0.1:8001` fallback for non-local pages | — | open |
+| 11 | [#18](https://github.com/23blocks-OS/ai-kiosk/issues/18) | nice-to-have | Delete two unused `lang` parameters | — | open |
+| 12 | [#19](https://github.com/23blocks-OS/ai-kiosk/issues/19) | nice-to-have | Fix the broken link in `apps/website/index.html` | — | open |
+| 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
+
+## Ideas (no issue yet)
+- **Per-kiosk prompt.** `/api/chat` has one Intercambio prompt. Add a `kiosk` field when a second kiosk needs different behavior.
+- **Streaming for `/v1`.** Not supported now. Many OpenAI clients stream.
+- **Whisper and Piper (voice)** are not installed on Aurelium.
+- **CORS**, only if browser apps on other sites will call the API.
+- **Cloudflare Access** on `aureliano.twofourai.com`. Optional now that keys exist.
 
 ## Done
 - 2026-11-08 — Repo-root leak closed (PR #1). Selector (PR #2). Team API with keys (PR #3). Backend live on Aurelium.

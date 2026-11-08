@@ -1,9 +1,12 @@
 # Index
 
 ## Start here
-- [backlog.md](backlog.md) — what to do next
+- [backlog.md](backlog.md) — what to do next (audit findings with GitHub issues)
 - [log.md](log.md) — what happened, by date
 - [aurelium.md](aurelium.md) — the Jetson: facts, URLs, how it runs
+
+## Specs
+- [Template](specs/TEMPLATE.md) — every spec starts here. No specs written yet; each is written when Juan picks an item from the backlog.
 
 ## Decisions
 - [0001 Kiosk selector is the front page](decisions/0001-kiosk-selector.md)
