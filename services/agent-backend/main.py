@@ -177,7 +177,15 @@ async def health():
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest):
+async def chat(request: Request):
+    user, denied = _require_key(request, allow_app=True)
+    if denied:
+        return denied
+    try:
+        req = ChatRequest(**(await request.json()))
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": "Body must be JSON with a message."})
+    print(f"api user={user} route=chat", flush=True)
     status, reply, queue_pos = await _guarded_model_call(
         req.message, req.lang, req.image_base64
     )
@@ -192,6 +200,10 @@ async def vision(request: Request):
     named "image" (or "file"), plus optional "message"/"lang" fields.
     The image is used for this one answer only and is never stored.
     """
+    user, denied = _require_key(request, allow_app=True)
+    if denied:
+        return denied
+    print(f"api user={user} route=vision", flush=True)
     content_type = request.headers.get("content-type", "")
     message = "Lee este documento y explícalo en español."
     lang = "es"
@@ -261,22 +273,28 @@ async def _app_only_hosts(request: Request, call_next):
     return await call_next(request)
 
 
-# ---- Team API: OpenAI-compatible, every caller needs an API key ----------
-# The kiosk page's own /api/* stays open (a public page cannot hold a secret).
-# /v1/* is for people and agents, on the tunnel and on the tailnet alike.
+# ---- Keys: every route that reaches the model needs one ------------------
+# Users are names in api-keys.json. People and agents have plain names.
+# Apps are service users named "app:<kiosk>" (spec 22). A page is public,
+# so an app key is an identity tag, not a secret: it works on /api/* only
+# and is refused on /v1/*.
+
+
+def _load_keys() -> dict:
+    try:
+        with open(API_KEYS_FILE) as f:
+            keys = json.load(f)
+    except (OSError, ValueError):
+        return {}  # no key file means no keys: the API stays closed
+    return keys if isinstance(keys, dict) else {}
 
 
 def _api_user(request: Request) -> str | None:
     """Name of the user whose key the request carries, or None."""
     auth = request.headers.get("authorization", "")
     key = auth[7:] if auth.lower().startswith("bearer ") else request.headers.get("x-api-key", "")
-    try:
-        with open(API_KEYS_FILE) as f:
-            keys = json.load(f)
-    except (OSError, ValueError):
-        return None  # no key file means no keys: the API stays closed
     found = None
-    for name, k in keys.items():
+    for name, k in _load_keys().items():
         if key and hmac.compare_digest(str(k), key):
             found = name
     return found
@@ -289,10 +307,40 @@ def _unauthorized() -> JSONResponse:
     )
 
 
+def _require_key(request: Request, allow_app: bool):
+    """Return (user, None) if the key is good, else (None, the error response)."""
+    user = _api_user(request)
+    if not user:
+        return None, _unauthorized()
+    if user.startswith("app:") and not allow_app:
+        return None, JSONResponse(
+            status_code=403,
+            content={"error": {"message": "This key is not allowed here.", "type": "key_not_allowed"}},
+        )
+    return user, None
+
+
+@app.get("/apps/{kiosk}/config.js", include_in_schema=False)
+async def app_config(kiosk: str):
+    """Give a kiosk page its own key. Only app:<name> keys are ever served."""
+    key = _load_keys().get("app:" + kiosk.removeprefix("kiosk-"))
+    if not key:
+        return Response(status_code=404)
+    return Response(
+        content=f"window.KIOSK_CONFIG = {json.dumps({'apiKey': key})};\n",
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+# ---- Team API: OpenAI-compatible -----------------------------------------
+
+
 @app.get("/v1/models")
 async def v1_models(request: Request):
-    if not _api_user(request):
-        return _unauthorized()
+    _, denied = _require_key(request, allow_app=False)
+    if denied:
+        return denied
     try:
         async with httpx.AsyncClient(timeout=10.0, trust_env=False) as client:
             r = await client.get(f"{OLLAMA_HOST}/v1/models")
@@ -304,9 +352,9 @@ async def v1_models(request: Request):
 @app.post("/v1/chat/completions")
 async def v1_chat(request: Request):
     """Pass-through to Ollama's OpenAI-compatible API: text and images, any installed model."""
-    user = _api_user(request)
-    if not user:
-        return _unauthorized()
+    user, denied = _require_key(request, allow_app=False)
+    if denied:
+        return denied
     try:
         body = await request.json()
     except Exception:

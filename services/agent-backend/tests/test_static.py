@@ -90,9 +90,9 @@ def test_v1_rejects_streaming(tmp_path, monkeypatch):
     assert r.status_code == 400
 
 
-def test_kiosk_api_and_health_need_no_key():
+def test_health_needs_no_key_but_the_kiosk_api_does():
     assert client.get("/health").status_code == 200
-    assert client.post("/api/chat", json={"message": "hi"}).status_code in (200, 503)
+    assert client.post("/api/chat", json={"message": "hi"}).status_code == 401  # spec 22
 
 
 def test_kiosk_has_home_button_and_idle_reset():

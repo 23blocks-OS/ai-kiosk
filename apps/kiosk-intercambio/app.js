@@ -8,6 +8,7 @@
   var I18N = {
     es: {
       home: "Inicio",
+      not_authorized: "Esta aplicación no tiene permiso para usar el agente. Avisa a quien la administra.",
       title: "Ayuda con formularios",
       subtitle: "Te leo el papel, te lo explico y te ayudo con el siguiente paso.",
       status_idle: "Estoy lista para ayudarte",
@@ -54,6 +55,7 @@
     },
     en: {
       home: "Home",
+      not_authorized: "This app is not authorized to use the agent. Please tell whoever runs it.",
       title: "Help with forms",
       subtitle: "I read the paper for you, explain it, and help with the next step.",
       status_idle: "I'm ready to help",
@@ -121,15 +123,26 @@
     return bases.filter(function (b, i) { return bases.indexOf(b) === i; });
   }
 
+  /* The server gives this page its own app key (config.js, spec 22).
+     A page is public, so the key is an identity tag, not a secret. */
+  function apiHeaders() {
+    var h = { "Content-Type": "application/json" };
+    var cfg = window.KIOSK_CONFIG;
+    if (cfg && cfg.apiKey) h["Authorization"] = "Bearer " + cfg.apiKey;
+    return h;
+  }
+
   async function apiPost(path, body) {
     var bases = apiBases();
     for (var i = 0; i < bases.length; i++) {
       try {
         var resp = await fetch(bases[i] + path, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: apiHeaders(),
           body: JSON.stringify(body)
         });
+        /* A refused key is not "demo mode": say so plainly. */
+        if (resp.status === 401 || resp.status === 403) return { reply: t("not_authorized") };
         if (resp.ok || resp.status === 503) return await resp.json();
         if ((resp.status === 404 || resp.status === 501) && i + 1 < bases.length) continue;
         return await resp.json().catch(function () { return null; });
