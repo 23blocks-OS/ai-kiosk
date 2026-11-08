@@ -8,6 +8,9 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **Who stops a visitor from holding the GPU?** Cloudflare rate-limit rule (no code) or a backend limit. Decides [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9).
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
+## Decided, spec waiting for approval
+- **Apps are service users with keys** — [#22](https://github.com/23blocks-OS/ai-kiosk/issues/22), [spec](specs/issue-22-apps-as-service-users.md). Juan's decision, 2026-11-08. An `app:` key works on `/api/*` only, never on `/v1/*`. Spec is a draft.
+
 ## Audit findings (ponytail audit, 2026-11-08)
 
 Finding numbers are from the audit report. Issue numbers are GitHub's.

@@ -6,7 +6,8 @@
 - [aurelium.md](aurelium.md) — the Jetson: facts, URLs, how it runs
 
 ## Specs
-- [Template](specs/TEMPLATE.md) — every spec starts here. No specs written yet; each is written when Juan picks an item from the backlog.
+- [Template](specs/TEMPLATE.md) — every spec starts here.
+- [Spec 22: apps are service users with keys](specs/issue-22-apps-as-service-users.md) — draft, waits for Juan
 
 ## Decisions
 - [0001 Kiosk selector is the front page](decisions/0001-kiosk-selector.md)
