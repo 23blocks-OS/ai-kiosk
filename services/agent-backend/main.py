@@ -15,12 +15,13 @@ MAX_QUEUE_WAIT_SECONDS).
 
 import asyncio
 import base64
+import hmac
 import json
 import os
 
 import httpx
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -29,6 +30,10 @@ OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3-vl:4b")
 OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "120"))
 MAX_CONCURRENT = int(os.environ.get("MAX_CONCURRENT_MODEL_CALLS", "2"))
 MAX_QUEUE_WAIT = float(os.environ.get("MAX_QUEUE_WAIT_SECONDS", "30"))
+# Who may call /v1/*: a JSON file {"name": "key"}, never committed (see api-keys.example.json).
+API_KEYS_FILE = os.environ.get(
+    "API_KEYS_FILE", os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-keys.json")
+)
 
 SYSTEM_PROMPT = (
     "You are the Intercambio kiosk helper in Boulder, Colorado. "
@@ -241,6 +246,74 @@ async def vision(request: Request):
             "bytes_received": n_bytes,
         },
     )
+
+
+# ---- Team API: OpenAI-compatible, every caller needs an API key ----------
+# The kiosk page's own /api/* stays open (a public page cannot hold a secret).
+# /v1/* is for people and agents, on the tunnel and on the tailnet alike.
+
+
+def _api_user(request: Request) -> str | None:
+    """Name of the user whose key the request carries, or None."""
+    auth = request.headers.get("authorization", "")
+    key = auth[7:] if auth.lower().startswith("bearer ") else request.headers.get("x-api-key", "")
+    try:
+        with open(API_KEYS_FILE) as f:
+            keys = json.load(f)
+    except (OSError, ValueError):
+        return None  # no key file means no keys: the API stays closed
+    found = None
+    for name, k in keys.items():
+        if key and hmac.compare_digest(str(k), key):
+            found = name
+    return found
+
+
+def _unauthorized() -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={"error": {"message": "Missing or invalid API key. Send Authorization: Bearer <key>.", "type": "invalid_api_key"}},
+    )
+
+
+@app.get("/v1/models")
+async def v1_models(request: Request):
+    if not _api_user(request):
+        return _unauthorized()
+    try:
+        async with httpx.AsyncClient(timeout=10.0, trust_env=False) as client:
+            r = await client.get(f"{OLLAMA_HOST}/v1/models")
+        return Response(content=r.content, status_code=r.status_code, media_type="application/json")
+    except Exception:
+        return JSONResponse(status_code=502, content={"error": {"message": "Ollama is not reachable."}})
+
+
+@app.post("/v1/chat/completions")
+async def v1_chat(request: Request):
+    """Pass-through to Ollama's OpenAI-compatible API: text and images, any installed model."""
+    user = _api_user(request)
+    if not user:
+        return _unauthorized()
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"error": {"message": "Body must be JSON."}})
+    if body.get("stream"):
+        return JSONResponse(status_code=400, content={"error": {"message": "stream is not supported; send stream:false."}})
+    body.setdefault("model", OLLAMA_MODEL)
+    try:
+        await asyncio.wait_for(_model_sem.acquire(), timeout=MAX_QUEUE_WAIT)
+    except asyncio.TimeoutError:
+        return JSONResponse(status_code=503, content={"error": {"message": "The model is busy. Try again in a moment."}})
+    try:
+        print(f"v1 user={user} model={body['model']}", flush=True)
+        async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT, trust_env=False) as client:
+            r = await client.post(f"{OLLAMA_HOST}/v1/chat/completions", json=body)
+        return Response(content=r.content, status_code=r.status_code, media_type="application/json")
+    except Exception:
+        return JSONResponse(status_code=502, content={"error": {"message": "Ollama is not reachable or timed out."}})
+    finally:
+        _model_sem.release()
 
 
 @app.get("/", include_in_schema=False)

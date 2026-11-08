@@ -19,3 +19,6 @@ Thumbs.db
 *.gguf
 *.bin
 models/
+
+# API keys (users and their keys). Never commit.
+api-keys.json
