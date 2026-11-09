@@ -130,3 +130,15 @@ def test_v1_checks_key_before_anything_reaches_ollama(tmp_path, monkeypatch):
         # even a broken body gets 401, not 400: the key is checked first
         assert client.post("/v1/chat/completions", content=b"not json", headers=headers).status_code == 401
     assert opened == []
+
+
+def test_pages_are_never_served_stale_after_a_deploy():
+    for path in ("/apps/kiosk-intercambio/", "/apps/kiosk-intercambio/app.js", "/apps/launcher/styles.css", "/packages/shared-ui/agent.css"):
+        assert client.get(path).headers["cache-control"] == "no-cache", path
+    assert client.get("/apps/kiosk-intercambio/app.js").headers.get("etag")  # so a re-check is a cheap 304
+
+
+def test_the_false_demo_text_is_gone():
+    js = client.get("/apps/kiosk-intercambio/app.js").text
+    assert "not connected to the local model" not in js and "no estoy conectado" not in js
+    assert "couldn't reach the agent" in js
