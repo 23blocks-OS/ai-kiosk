@@ -53,6 +53,22 @@ SYSTEM_PROMPT = (
     "a document you cannot read."
 )
 
+SHOP_PROMPT = (
+    "You are the Shop Operator helper for a small shop. The visitor shows a screenshot of "
+    "the shop's Windows program and asks how to do a task. "
+    "Describe only what is visible on the screen. Name the exact button, tab or menu to use, "
+    "and give short numbered steps. "
+    "If the button or setting is not on this screen, say \"I cannot see that on this screen\" "
+    "and say what to open first. Never guess a setting or invent a menu. "
+    "Answer in the language of the visitor's last message. Use short, plain language. "
+    "The shop is fictional; never ask for passwords, card numbers or customer data."
+)
+
+# One prompt per kiosk. A kiosk page sends its own name in the "kiosk" field.
+PROMPTS = {"intercambio": SYSTEM_PROMPT, "shop": SHOP_PROMPT}
+DEFAULT_KIOSK = "intercambio"
+
+
 async def _warm_model():
     """Load the model at startup so the first visitor is not the one who waits."""
     outcome = "ok"
@@ -81,6 +97,7 @@ _waiting = 0
 class ChatRequest(BaseModel):
     message: str
     lang: str = "es"
+    kiosk: str = DEFAULT_KIOSK
     image_base64: str | None = None
 
 
@@ -155,7 +172,7 @@ def _language_hint(lang: str) -> str:
     return f" If you cannot tell which language the visitor wrote, answer in {name}."
 
 
-async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str:
+async def _call_ollama(message: str, lang: str, image_base64: str | None, kiosk: str = DEFAULT_KIOSK) -> str:
     """Return the model's reply, or raise ModelFailure (the caller falls back honestly)."""
     user_msg: dict = {"role": "user", "content": message}
     if image_base64:
@@ -163,7 +180,7 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str
     payload = {
         "model": OLLAMA_MODEL,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT + _language_hint(lang)},
+            {"role": "system", "content": PROMPTS[kiosk] + _language_hint(lang)},
             user_msg,
         ],
         "stream": False,
@@ -189,7 +206,7 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str
     return content
 
 
-async def _guarded_model_call(message: str, lang: str, image_base64: str | None, route: str = "chat", user: str = "-"):
+async def _guarded_model_call(message: str, lang: str, image_base64: str | None, route: str = "chat", user: str = "-", kiosk: str = DEFAULT_KIOSK):
     """Run a model call under the concurrency guard.
 
     Returns (status, reply, queue_position): status is "ok", "queued" (503: waited
@@ -208,7 +225,7 @@ async def _guarded_model_call(message: str, lang: str, image_base64: str | None,
         _waiting -= 1
     try:
         try:
-            reply = await _call_ollama(message, lang, image_base64)
+            reply = await _call_ollama(message, lang, image_base64, kiosk)
             outcome = "ok"
         except ModelFailure as failure:
             reply, outcome = None, failure.outcome
@@ -220,6 +237,15 @@ async def _guarded_model_call(message: str, lang: str, image_base64: str | None,
     if outcome == "timeout":
         return "timeout", _timeout_reply(lang), None
     return "fallback", _stub_reply(lang), None
+
+
+def _kiosk_problem(user: str, kiosk: str):
+    """Return an error response when the kiosk name is unknown or not this key's own, else None."""
+    if kiosk not in PROMPTS:
+        return JSONResponse(status_code=400, content={"error": f"Unknown kiosk. Use one of: {', '.join(sorted(PROMPTS))}."})
+    if user.startswith("app:") and user != f"app:{kiosk}":
+        return JSONResponse(status_code=403, content={"error": "This key belongs to another kiosk."})
+    return None
 
 
 def _response(status: str, reply: str, lang: str, queue_position=None, extra=None):
@@ -262,8 +288,11 @@ async def chat(request: Request):
         return JSONResponse(status_code=400, content={"error": "Body must be JSON with a message."})
     if len(req.message) > MAX_QUESTION_CHARS:
         return JSONResponse(status_code=413, content={"error": f"Question over {MAX_QUESTION_CHARS} characters."})
+    problem = _kiosk_problem(user, req.kiosk)
+    if problem:
+        return problem
     status, reply, queue_pos = await _guarded_model_call(
-        req.message, req.lang, req.image_base64, "chat", user
+        req.message, req.lang, req.image_base64, "chat", user, req.kiosk
     )
     return _response(status, reply, req.lang, queue_pos)
 
@@ -282,6 +311,7 @@ async def vision(request: Request):
     content_type = request.headers.get("content-type", "")
     message = "Lee este documento y explícalo en español."
     lang = "es"
+    kiosk = DEFAULT_KIOSK
     image_b64: str | None = None
     filename = None
     n_bytes = 0
@@ -290,6 +320,7 @@ async def vision(request: Request):
         form = await request.form()
         message = str(form.get("message") or message)
         lang = str(form.get("lang") or lang)
+        kiosk = str(form.get("kiosk") or kiosk)
         upload = form.get("image") or form.get("file")
         if upload is not None and hasattr(upload, "read"):
             data = await upload.read()
@@ -303,6 +334,7 @@ async def vision(request: Request):
             body = {}
         message = str(body.get("message") or message)
         lang = str(body.get("lang") or lang)
+        kiosk = str(body.get("kiosk") or kiosk)
         image_b64 = body.get("image_base64")
         if image_b64:
             try:
@@ -323,7 +355,10 @@ async def vision(request: Request):
 
     if len(message) > MAX_QUESTION_CHARS:
         return JSONResponse(status_code=413, content={"error": f"Question over {MAX_QUESTION_CHARS} characters."})
-    status, reply, queue_pos = await _guarded_model_call(message, lang, image_b64, "vision", user)
+    problem = _kiosk_problem(user, kiosk)
+    if problem:
+        return problem
+    status, reply, queue_pos = await _guarded_model_call(message, lang, image_b64, "vision", user, kiosk)
     return _response(
         status,
         reply,
