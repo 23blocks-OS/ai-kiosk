@@ -27,6 +27,7 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | 11 | [#18](https://github.com/23blocks-OS/ai-kiosk/issues/18) | nice-to-have | Delete two unused `lang` parameters | — | open |
 | 12 | [#19](https://github.com/23blocks-OS/ai-kiosk/issues/19) | nice-to-have | Fix the broken link in `apps/website/index.html` | — | open |
 | — | [#24](https://github.com/23blocks-OS/ai-kiosk/issues/24) | should-fix | Timeout shows "no local model connected", a false message (follow-up of #23) | — | open |
+| — | [#28](https://github.com/23blocks-OS/ai-kiosk/issues/28) | should-fix | Logs too thin to diagnose failures (errors swallowed, no duration or outcome) | — | open |
 | 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
 
 ## Ideas (no issue yet)
