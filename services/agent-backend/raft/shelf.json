@@ -1,0 +1,68 @@
+{
+  "_note": "Raft starter shelf. Public-domain US government documents only. fema-food-water-emergency was dropped: fema.gov refuses automated downloads (403).",
+  "items": [
+    {
+      "id": "ready-wildfire-info-sheet",
+      "title": "Ready.gov Wildfire Hazard Information Sheet",
+      "url": "https://www.ready.gov/sites/default/files/2021-01/ready_wildfire_info-sheet.pdf",
+      "license": "US Gov public domain",
+      "topic": "fire"
+    },
+    {
+      "id": "epa-wildfire-smoke-guide",
+      "title": "Wildfire Smoke: A Guide for Public Health Officials (EPA/CDC/CARB, 2021)",
+      "url": "https://document.airnow.gov/wildfire-smoke-guide.pdf",
+      "license": "US Gov public domain",
+      "topic": "hazards"
+    },
+    {
+      "id": "ready-power-outage-info-sheet",
+      "title": "Ready.gov Power Outage Hazard Information Sheet",
+      "url": "https://www.ready.gov/sites/default/files/2024-08/ready.gov_power-outage_info-sheet.pdf",
+      "license": "US Gov public domain",
+      "topic": "power"
+    },
+    {
+      "id": "cdc-generator-co-safety",
+      "title": "CDC: When the power goes out, keep your generator outside (CO safety)",
+      "url": "https://stacks.cdc.gov/view/cdc/47902/cdc_47902_DS1.pdf",
+      "license": "US Gov public domain",
+      "topic": "power"
+    },
+    {
+      "id": "cpsc-generator-safety",
+      "title": "CPSC What to Know About Portable Generators (2022)",
+      "url": "https://www.cpsc.gov/s3fs-public/468_WhattoKnowGenerators_2022_v5.pdf",
+      "license": "US Gov public domain",
+      "topic": "power"
+    },
+    {
+      "id": "cdc-make-water-safe",
+      "title": "CDC Make Water Safe During an Emergency",
+      "url": "https://www.cdc.gov/water-emergency/media/pdfs/make-water-safe-during-emergency-p.pdf",
+      "license": "US Gov public domain",
+      "topic": "water"
+    },
+    {
+      "id": "tc-4-02-1-first-aid",
+      "title": "TC 4-02.1 First Aid (2016, C2 Dec 2018) [ciehub.info mirror]",
+      "url": "https://ciehub.info/ref/TC/4-02x1_2018.pdf",
+      "license": "US Gov public domain",
+      "topic": "medical"
+    },
+    {
+      "id": "niosh-poisonous-plants",
+      "title": "NIOSH Fast Facts: Protecting Yourself from Poisonous Plants (poison oak/ivy)",
+      "url": "https://www.cdc.gov/niosh/docs/2010-118/pdfs/2010-118.pdf",
+      "license": "US Gov public domain",
+      "topic": "medical"
+    },
+    {
+      "id": "fema-are-you-ready",
+      "title": "FEMA Are You Ready? An In-Depth Guide to Citizen Preparedness",
+      "url": "https://www.ready.gov/sites/default/files/2021-11/are-you-ready-guide.pdf",
+      "license": "US Gov public domain",
+      "topic": "preparedness"
+    }
+  ]
+}

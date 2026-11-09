@@ -167,3 +167,11 @@ def test_shop_page_gets_only_its_own_key(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "API_KEYS_FILE", str(f))
     cfg = client.get("/apps/kiosk-shop/config.js").text
     assert "k-shop" in cfg and "k-int" not in cfg
+
+
+def test_raft_page_and_launcher_link():
+    page = client.get("/apps/kiosk-raft/").text
+    assert "call 911" in page.lower() or "911" in page
+    js = client.get("/apps/kiosk-raft/app.js").text
+    assert 'kiosk: "raft"' in js and "sources" in js
+    assert 'href="../kiosk-raft/"' in client.get("/apps/launcher/").text
