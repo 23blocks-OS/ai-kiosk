@@ -21,3 +21,4 @@ Append only. Newest at the bottom.
 - 2026-11-09 — Hardening (PR #30) and `no-store` (PR #29) merged and deployed; wiki PRs #7, #21 merged. Read-backs passed through Cloudflare.
 - 2026-11-09 — Juan: English question got a Spanish answer. Cause: the prompt said "Spanish is the default" and ignored the UI language. Fixed in PR #31: answer in the visitor's language; UI language is the fallback.
 - 2026-11-09 — Juan asks for the other kiosk samples. Issues #35 #36 #37 and spec `new-kiosk-samples.md` written (draft). Also: favicon (PR #34), double-send block, vision tests, placeholder pages deleted (PR #33).
+- 2026-11-09 — Juan: read the Lifeboat repo, spec only. Read all 2,601 lines. Finding: reuse prompt, retrieval ideas and the child-dose guard in our backend on the 4B model; the full port does not fit 8 GB. Spec `lifeboat-kiosk.md` (draft).

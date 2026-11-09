@@ -9,7 +9,7 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
 ## Planned (spec drafted, waits for Juan's approval)
-- [#35](https://github.com/23blocks-OS/ai-kiosk/issues/35) Per-kiosk prompt and keys, [#36](https://github.com/23blocks-OS/ai-kiosk/issues/36) Shop Operator sample, [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37) Lifeboat sample. [Spec](specs/new-kiosk-samples.md). Juan, 2026-11-09: "lets now build the other samples we have plan, write the backlog item, and the spec first."
+- [#35](https://github.com/23blocks-OS/ai-kiosk/issues/35) Per-kiosk prompt and keys, [#36](https://github.com/23blocks-OS/ai-kiosk/issues/36) Shop Operator sample, [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37) Lifeboat sample. [Spec](specs/new-kiosk-samples.md); Lifeboat has its own [spec](specs/lifeboat-kiosk.md) after reading the repo. Juan, 2026-11-09: "lets now build the other samples we have plan, write the backlog item, and the spec first."
 
 ## In progress
 - ~~**Hardening** — #8, #10, #11, #24, #28 (part of #12).~~ Done 2026-11-09, PR #30. [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
