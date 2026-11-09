@@ -10,8 +10,8 @@ Facts from the Lares handoff ([source](sources/2026-11-08-lares-handoff.md)) and
 
 ## How the app runs
 - Code: `~/ai-kiosk` (clone of `23blocks-OS/ai-kiosk`). Update with `git pull`.
-- Backend: user service `ai-kiosk`, port 8000, all interfaces, `--no-proxy-headers`, env `APP_ONLY_HOSTS=kiosk.ciaocorp.com`. Venv at `~/ai-kiosk/.venv`.
-- Keys: `~/ai-kiosk/services/agent-backend/api-keys.json`. Gitignored. See [decision 0003](decisions/0003-team-api-and-keys.md).
+- Backend: user service `ai-kiosk`, port 8000, all interfaces, `--no-proxy-headers`, env `APP_ONLY_HOSTS=kiosk.ciaocorp.com` and `OLLAMA_MODEL=qwen3-vl:4b-instruct` ([decision 0007](decisions/0007-kiosk-uses-the-instruct-model.md)). Venv at `~/ai-kiosk/.venv`.
+- Keys: `~/ai-kiosk/services/agent-backend/api-keys.json`. Gitignored. People and agents have plain names; apps are `app:<kiosk>` ([decision 0003](decisions/0003-team-api-and-keys.md), [0008](decisions/0008-apps-are-service-users.md)).
 - Tunnel: Cloudflare Tunnel `cloudflared` (system service, managed in the Cloudflare dashboard) sends both hostnames to `localhost:8000`.
 
 ## URLs

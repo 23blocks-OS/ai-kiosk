@@ -13,3 +13,8 @@ Append only. Newest at the bottom.
 - 2026-11-08 — PRs #4, #5, #6 merged and deployed to Aurelium. Network rule checked from outside: `kiosk.ciaocorp.com` app only; `aureliano.twofourai.com` and the tailnet app + API.
 - 2026-11-08 — Home button and idle reset live (decision 0006). Record repo pushed to `3Metas/ciao-kiosk`.
 - 2026-11-08 — A test called the real model on Aurelium and timed out. Fixed: tests never call the real model.
+- 2026-11-08 — Ponytail audit of the repo: 13 findings. Opened GitHub issues #8 to #20, one per finding, and a backlog row for each. Added the spec template and the finding-to-done workflow.
+- 2026-11-08 — Juan decides the kiosk apps must send API keys as named service users. Issue #22 and spec 22 written (draft). Key point: a key in a public page is an identity tag, not a secret, so `app:` keys work on `/api/*` only.
+- 2026-11-08 — Juan reports the kiosk shows STUB. Cause: reasoning model too slow, backend timeout at 120 s. Fixed on Aurelium by switching to `qwen3-vl:4b-instruct` (decision 0007, issue #23). False stub text on timeout is issue #24.
+- 2026-11-08 — Spec 22 built, merged (PR #25) and deployed. Live checks passed on all three paths; real visitor flow answered in about 20 s as `app:intercambio`. Decision 0008.
+- 2026-11-08 — Juan asks about logs. Found: errors swallowed, no duration or outcome, every visitor shows as 127.0.0.1. Issue #28. Also: issue #26 (stale page, false demo text) fixed in PR #27, not yet merged.

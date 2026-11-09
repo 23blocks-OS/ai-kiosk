@@ -15,10 +15,19 @@ It follows Karpathy's "LLM wiki" pattern: the agent writes the pages, so knowled
 
 - `index.md` — catalog of every page, one line each. Read it first.
 - `log.md` — append-only history. One dated line per event. Never rewrite old lines.
-- `backlog.md` — what to do next, by priority.
+- `backlog.md` — what to do next, by priority. Each audit finding has a row, a GitHub issue and, later, a spec.
+- `specs/` — one detailed spec per item we decide to work on. Template: [specs/TEMPLATE.md](specs/TEMPLATE.md).
 - `decisions/NNNN-title.md` — one decision per page: context, decision, why, consequences.
 - `aurelium.md` — the Jetson: facts, how it runs, runbook.
 - `sources/` — raw inputs, named `YYYY-MM-DD-who-topic.md`.
+
+## From finding to done
+
+1. **Finding.** Write a GitHub issue (what is wrong, evidence, proposed fix, what happens if we skip it) and a row in `backlog.md` with the issue link.
+2. **Decision.** Juan says which item we work on.
+3. **Spec.** `ciao-kiosk` writes `specs/issue-<N>-title.md` from the template: goal, approach, exact files, steps, tests, live checks, deploy and rollback. Juan reads it and approves it. No code before this.
+4. **Build.** Branch, code, tests, PR. The PR links the issue and the spec.
+5. **Done.** Merge, deploy, check from outside, fill the spec's Result section, move the row to Done, add a line to `log.md`, close the issue.
 
 ## Operations
 
