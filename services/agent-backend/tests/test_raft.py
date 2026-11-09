@@ -127,7 +127,7 @@ def test_real_shelf_finds_the_demo_questions():
     db = library.open_db()
     cases = {
         "Wildfire smoke is heavy outside. How do I protect my family indoors?": ("epa-wildfire-smoke-guide", "ready-wildfire-info-sheet"),
-        "Is it safe to run a generator in my garage?": ("cdc-generator-co-safety", "cpsc-generator-safety"),
+        "Is it safe to run a generator in my garage?": ("cdc-generator-co-safety", "cpsc-generator-safety", "ready-power-outage-info-sheet"),
         "How do I make water safe to drink in an emergency?": ("cdc-make-water-safe",),
         "How do I treat a deep cut that is bleeding?": ("tc-4-02-1-first-aid",),
         "I touched poison ivy. What do I do?": ("niosh-poisonous-plants",),
