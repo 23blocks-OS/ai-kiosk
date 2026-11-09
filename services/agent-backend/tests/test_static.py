@@ -148,3 +148,22 @@ def test_favicon_is_served_without_a_key():
     r = client.get("/favicon.ico")
     assert r.status_code == 200 and r.headers["content-type"].startswith("image/svg+xml")
     assert b"<svg" in r.content
+
+
+def test_shop_kiosk_page_samples_and_config():
+    page = client.get("/apps/kiosk-shop/").text
+    assert 'data-sample="sales"' in page and 'href="../launcher/"' in page
+    js = client.get("/apps/kiosk-shop/app.js").text
+    assert js.count('kiosk: "shop"') == 2
+    for name in ("sales", "inventory", "settings"):
+        r = client.get(f"/apps/kiosk-shop/samples/{name}.png")
+        assert r.status_code == 200 and r.content[:4] == b"\x89PNG"
+    assert 'href="../kiosk-shop/"' in client.get("/apps/launcher/").text
+
+
+def test_shop_page_gets_only_its_own_key(tmp_path, monkeypatch):
+    f = tmp_path / "k.json"
+    f.write_text('{"app:shop": "k-shop", "app:intercambio": "k-int"}')
+    monkeypatch.setattr(main, "API_KEYS_FILE", str(f))
+    cfg = client.get("/apps/kiosk-shop/config.js").text
+    assert "k-shop" in cfg and "k-int" not in cfg
