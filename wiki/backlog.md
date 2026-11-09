@@ -11,6 +11,8 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 ## Planned (spec drafted, waits for Juan's approval)
 - [#35](https://github.com/23blocks-OS/ai-kiosk/issues/35) Per-kiosk prompt and keys, [#36](https://github.com/23blocks-OS/ai-kiosk/issues/36) Shop Operator sample, [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37) Raft sample (small Lifeboat). [Spec](specs/new-kiosk-samples.md); Raft (the Lifeboat sample) has its own [spec](specs/raft-kiosk.md) after reading the repo. Juan, 2026-11-09: "lets now build the other samples we have plan, write the backlog item, and the spec first."
 
+- [#42](https://github.com/23blocks-OS/ai-kiosk/issues/42) Raft shelf loader: load and unload library packs by situation. [Spec](specs/raft-shelf-loader.md). Comes after Raft Phase 1. Juan, 2026-11-09: "load this elements to memory based on the emergency or situation."
+
 ## In progress
 - ~~**Hardening** — #8, #10, #11, #24, #28 (part of #12).~~ Done 2026-11-09, PR #30. [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
 

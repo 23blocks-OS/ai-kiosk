@@ -25,3 +25,4 @@
 
 - [Spec: new kiosk samples (Shop, Lifeboat)](specs/new-kiosk-samples.md) — draft, waits for Juan
 - [Spec: Raft kiosk](specs/raft-kiosk.md) — draft, waits for Juan
+- [Spec: Raft shelf loader](specs/raft-shelf-loader.md) — draft, after Raft Phase 1
