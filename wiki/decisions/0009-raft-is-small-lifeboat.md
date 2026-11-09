@@ -6,3 +6,6 @@
 - **Juan's words:** "ok lifebote light it is , call it raft then"
 - **Why:** It fits the board, keeps citations and the code guard, and demos the idea now.
 - **Consequence:** Kiosk name `raft`, key `app:raft`, folder `apps/kiosk-raft/`. The launcher card is "Raft".
+
+## Update 2026-11-09
+Built (PR #45). Kiosk keys are limited to their own kiosk: `app:raft` cannot ask for `shop` (403).

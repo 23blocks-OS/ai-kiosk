@@ -1,9 +1,9 @@
 # Spec — Raft kiosk (replaces part C of `new-kiosk-samples.md`)
 
 - **Issue:** [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37)
-- **Date:** 2026-11-09. **Status:** draft. No code written.
+- **Date:** 2026-11-09. **Status:** done (Phase 1).
 - **Name:** Raft. Juan, 2026-11-09: "ok lifebote light it is , call it raft then". Raft is our small version of Lifeboat, built on the 4B model.
-- **Approved by:** Juan approved the Lite approach and the name. The hero example and the starter shelf still wait for his word.
+- **Approved by:** Juan, 2026-11-09: "approved."
 - **Source read:** `23blocks-OS/lifeboat`, fork of `johnpsasser/lifeboat`, HEAD `69b3ca1`, MIT. I read `README.md`, `DESIGN.md`, `app/{server,retrieve,llm,config,household}.py`, `sources.json`, `sources_pdf.json`, `regions/`, `scripts/{verify_offline,make_binder}.py` (2,601 lines in all).
 
 ## Goal
@@ -96,4 +96,11 @@ Household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperi
 - **Questions for Juan:** (1) Is the hero "wildfire smoke" plus the child-dose guard? (2) Is the ten-PDF starter shelf right? (3) Answered: Raft on our 4B model, the full port later.
 
 ## Result
-Filled after the work.
+PR #45, live 2026-11-09. Raft answers from 9 of the 10 planned documents; `fema-food-water-emergency` returned 403 to the automated download and I did not work around it. The shelf holds 510 passages in a 1.1 MB index; the PDFs are gitignored and built by `scripts/build_shelf.py`. 59 tests pass on Aurelium, including five demo questions against the real shelf.
+Live, read back through Cloudflare (population: one run each, 2026-11-09):
+- Wildfire smoke: cited answer with 3 sources, 14 to 19 s steady state. The first call after a restart took 50 s.
+- Generator in the garage: "not safe", cited to 3 documents.
+- Tax question: honest "My sources don't cover this" in 1 s, no model call.
+- Child ibuprofen question: the model answered "My sources don't cover this" and gave no dose, because the shelf holds no dosing table. The red box did not show, since there was no dose to catch. The guard is tested in code, but this demo cannot show it. The honest refusal is the safety moment.
+- Free memory on Aurelium with Raft running: 130 MB of 7,485 MB. `/v1/models` on `kiosk.ciaocorp.com` is still 404. The log shows `user=app:raft` and no question text.
+Changed from the spec: sources are hidden when the answer has no citation, so a refusal does not show passages it did not use. The Boulder-specific source is still missing.
