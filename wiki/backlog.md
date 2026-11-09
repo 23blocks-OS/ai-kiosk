@@ -9,7 +9,7 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
 ## In progress
-- **Hardening** — #8, #10, #11, #24, #28 (part of #12). [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
+- ~~**Hardening** — #8, #10, #11, #24, #28 (part of #12).~~ Done 2026-11-09, PR #30. [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
 
 ## Audit findings (ponytail audit, 2026-11-08)
 
@@ -17,10 +17,10 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 
 | # | Issue | Level | What | Spec | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | [#8](https://github.com/23blocks-OS/ai-kiosk/issues/8) | must-fix | Public routes accept unlimited request size (out-of-memory risk) | — | open |
+| 1 | [#8](https://github.com/23blocks-OS/ai-kiosk/issues/8) | must-fix | Public routes accept unlimited request size (out-of-memory risk) | — | done 2026-11-09 |
 | 2 | [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9) | must-fix | Any visitor can hold the GPU and block everyone, team API included | — | open, needs Juan |
-| 3 | [#10](https://github.com/23blocks-OS/ai-kiosk/issues/10) | must-fix | First request after idle fails (cold start longer than Cloudflare's limit) | — | open |
-| 4 | [#11](https://github.com/23blocks-OS/ai-kiosk/issues/11) | should-fix | `/v1` returns 500 on a JSON list body or a bad key file | — | open |
+| 3 | [#10](https://github.com/23blocks-OS/ai-kiosk/issues/10) | must-fix | First request after idle fails (cold start longer than Cloudflare's limit) | — | done 2026-11-09 |
+| 4 | [#11](https://github.com/23blocks-OS/ai-kiosk/issues/11) | should-fix | `/v1` returns 500 on a JSON list body or a bad key file | — | done 2026-11-09 |
 | 5 | [#12](https://github.com/23blocks-OS/ai-kiosk/issues/12) | should-fix | No tests for the honest fallback, the queue 503 and `/api/vision` | — | open |
 | 6 | [#13](https://github.com/23blocks-OS/ai-kiosk/issues/13) | should-fix | Kiosk lets a visitor send many messages while the agent is thinking | — | open |
 | 7 | [#14](https://github.com/23blocks-OS/ai-kiosk/issues/14) | should-fix | Pin Python package versions, add dev requirements | — | open |
@@ -29,8 +29,8 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | 10 | [#17](https://github.com/23blocks-OS/ai-kiosk/issues/17) | nice-to-have | Remove the `127.0.0.1:8001` fallback for non-local pages | — | open |
 | 11 | [#18](https://github.com/23blocks-OS/ai-kiosk/issues/18) | nice-to-have | Delete two unused `lang` parameters | — | open |
 | 12 | [#19](https://github.com/23blocks-OS/ai-kiosk/issues/19) | nice-to-have | Fix the broken link in `apps/website/index.html` | — | open |
-| — | [#24](https://github.com/23blocks-OS/ai-kiosk/issues/24) | should-fix | Timeout shows "no local model connected", a false message (follow-up of #23) | — | open |
-| — | [#28](https://github.com/23blocks-OS/ai-kiosk/issues/28) | should-fix | Logs too thin to diagnose failures (errors swallowed, no duration or outcome) | — | open |
+| — | [#24](https://github.com/23blocks-OS/ai-kiosk/issues/24) | should-fix | Timeout shows "no local model connected", a false message (follow-up of #23) | — | done 2026-11-09 |
+| — | [#28](https://github.com/23blocks-OS/ai-kiosk/issues/28) | should-fix | Logs too thin to diagnose failures (errors swallowed, no duration or outcome) | — | done 2026-11-09 |
 | 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
 
 ## Ideas (no issue yet)
