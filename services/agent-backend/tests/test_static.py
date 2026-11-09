@@ -142,3 +142,9 @@ def test_the_false_demo_text_is_gone():
     js = client.get("/apps/kiosk-intercambio/app.js").text
     assert "not connected to the local model" not in js and "no estoy conectado" not in js
     assert "couldn't reach the agent" in js
+
+
+def test_favicon_is_served_without_a_key():
+    r = client.get("/favicon.ico")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("image/svg+xml")
+    assert b"<svg" in r.content
