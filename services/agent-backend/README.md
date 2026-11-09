@@ -94,6 +94,19 @@ curl https://aureliano.twofourai.com/v1/chat/completions \
 
 **Users and keys** live in `services/agent-backend/api-keys.json`: `{"name": "key", ...}`. The file is read on every request, so edits apply at once. It is in `.gitignore` and never goes to GitHub; `api-keys.example.json` shows the shape. Add a user: `openssl rand -hex 24`, then add the line. Remove a user: delete the line. No file means the API is closed.
 
-The kiosk page's own `/api/chat`, `/api/vision` and `/health` stay open, because a public page cannot hold a secret.
+**Every route that reaches the model needs a key**, including the kiosk page's own `/api/chat` and `/api/vision`. Only `/health` and the page files are open.
+
+**Apps are service users.** An app is a name in `api-keys.json` like `app:intercambio` (the kiosk folder `kiosk-intercambio` maps to `app:intercambio`). The server hands each page its key at `/apps/<kiosk>/config.js` (never from git, `Cache-Control: no-store`), and the page sends it as `Authorization: Bearer`.
+
+| Key | `/api/*` (kiosk routes) | `/v1/*` (team API) |
+| --- | --- | --- |
+| Person or agent (`alice`) | yes | yes |
+| App (`app:intercambio`) | yes | **no, 403** |
+
+**A page is public, so an app key is an identity tag, not a secret.** Anyone who opens the kiosk can read it. It gives you named logs (`api user=app:intercambio`) and per-app revoke and rotate. It does not stop abuse of `/api/*`: see issues #8 and #9. It must never work on `/v1/*`, or every visitor would get the team API.
+
+To add a kiosk: `openssl rand -hex 24`, add `"app:<name>": "<key>"` to `api-keys.json`, and load `config.js` before `app.js` in its page. To rotate: edit the file; pages pick the new key on the next load. No file or no `app:` line means the page gets a 404 for `config.js` and shows "this app is not authorized".
+
+Local dev: run the backend (not a plain static server) with an `api-keys.json` that has an `app:intercambio` line.
 
 **App-only hostnames.** `APP_ONLY_HOSTS=kiosk.ciaocorp.com` makes `/v1/*` a 404 on that hostname, even with a valid key. The team hostname (`aureliano.twofourai.com`) and the tailnet keep both the app and the API.
