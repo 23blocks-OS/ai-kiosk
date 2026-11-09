@@ -19,7 +19,7 @@ def _setup(tmp_path, monkeypatch, keys=USERS):
     f.write_text(json.dumps(keys))
     monkeypatch.setattr(main, "API_KEYS_FILE", str(f))
 
-    async def fake_model(message, lang, image_base64):
+    async def fake_model(message, lang, image_base64, kiosk="intercambio"):
         return "ok"  # never call the real model from a test
 
     monkeypatch.setattr(main, "_call_ollama", fake_model)

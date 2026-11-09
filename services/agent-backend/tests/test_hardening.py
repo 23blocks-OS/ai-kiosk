@@ -197,3 +197,40 @@ def test_vision_without_an_image_is_400_and_never_reaches_the_model(tmp_path, mo
     r = client.post("/api/vision", json={"message": "read this"}, headers=APP)
     assert r.status_code == 400 and r.json()["stub"] is True
     assert calls == []
+
+
+def test_unknown_kiosk_is_400_and_never_reaches_the_model(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    r = client.post("/api/chat", json={"message": "hi", "kiosk": "nope"}, headers=PERSON)
+    assert r.status_code == 400 and calls == []
+
+
+def test_each_kiosk_gets_its_own_prompt(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    client.post("/api/chat", json={"message": "hi", "kiosk": "shop"}, headers=PERSON)
+    client.post("/api/chat", json={"message": "hi", "kiosk": "intercambio"}, headers=PERSON)
+    shop, interc = (c[1]["messages"][0]["content"] for c in calls[-2:])
+    assert "Shop Operator" in shop and "Intercambio" in interc and shop != interc
+
+
+def test_default_kiosk_is_intercambio(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    client.post("/api/chat", json={"message": "hi"}, headers=APP)
+    assert "Intercambio" in calls[-1][1]["messages"][0]["content"]
+
+
+def test_an_app_key_cannot_use_another_kiosk(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    r = client.post("/api/chat", json={"message": "hi", "kiosk": "shop"}, headers=APP)  # app:intercambio
+    assert r.status_code == 403 and calls == []
+
+
+def test_vision_takes_the_kiosk_too(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch, {"message": {"content": "click Print"}})
+    r = client.post("/api/vision", json={"image_base64": "aGk=", "kiosk": "shop"}, headers=PERSON)
+    assert r.status_code == 200 and "Shop Operator" in calls[-1][1]["messages"][0]["content"]
