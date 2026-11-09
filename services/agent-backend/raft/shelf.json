@@ -1,5 +1,5 @@
 {
-  "_note": "Raft starter shelf. Public-domain US government documents only. sha256 and pages are filled in by scripts/build_shelf.py.",
+  "_note": "Raft starter shelf. Public-domain US government documents only. fema-food-water-emergency was dropped: fema.gov refuses automated downloads (403).",
   "items": [
     {
       "id": "ready-wildfire-info-sheet",
@@ -40,13 +40,6 @@
       "id": "cdc-make-water-safe",
       "title": "CDC Make Water Safe During an Emergency",
       "url": "https://www.cdc.gov/water-emergency/media/pdfs/make-water-safe-during-emergency-p.pdf",
-      "license": "US Gov public domain",
-      "topic": "water"
-    },
-    {
-      "id": "fema-food-water-emergency",
-      "title": "FEMA/Red Cross Food and Water in an Emergency (FEMA 477)",
-      "url": "https://www.fema.gov/pdf/library/f&web.pdf",
       "license": "US Gov public domain",
       "topic": "water"
     },

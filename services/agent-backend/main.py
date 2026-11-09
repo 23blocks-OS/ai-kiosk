@@ -23,6 +23,8 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI, Request
+from raft import library as raft_library, prompt as raft_prompt, retrieve as raft_retrieve
+from raft.guard import dose_warning
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -65,7 +67,8 @@ SHOP_PROMPT = (
 )
 
 # One prompt per kiosk. A kiosk page sends its own name in the "kiosk" field.
-PROMPTS = {"intercambio": SYSTEM_PROMPT, "shop": SHOP_PROMPT}
+PROMPTS = {"intercambio": SYSTEM_PROMPT, "shop": SHOP_PROMPT, "raft": raft_prompt.RULES}
+RAFT_DB_PATH = raft_library.DB_PATH
 DEFAULT_KIOSK = "intercambio"
 
 
@@ -172,7 +175,7 @@ def _language_hint(lang: str) -> str:
     return f" If you cannot tell which language the visitor wrote, answer in {name}."
 
 
-async def _call_ollama(message: str, lang: str, image_base64: str | None, kiosk: str = DEFAULT_KIOSK) -> str:
+async def _call_ollama(message: str, lang: str, image_base64: str | None, kiosk: str = DEFAULT_KIOSK, system: str | None = None) -> str:
     """Return the model's reply, or raise ModelFailure (the caller falls back honestly)."""
     user_msg: dict = {"role": "user", "content": message}
     if image_base64:
@@ -180,7 +183,7 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None, kiosk:
     payload = {
         "model": OLLAMA_MODEL,
         "messages": [
-            {"role": "system", "content": PROMPTS[kiosk] + _language_hint(lang)},
+            {"role": "system", "content": system or (PROMPTS[kiosk] + _language_hint(lang))},
             user_msg,
         ],
         "stream": False,
@@ -206,7 +209,7 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None, kiosk:
     return content
 
 
-async def _guarded_model_call(message: str, lang: str, image_base64: str | None, route: str = "chat", user: str = "-", kiosk: str = DEFAULT_KIOSK):
+async def _guarded_model_call(message: str, lang: str, image_base64: str | None, route: str = "chat", user: str = "-", kiosk: str = DEFAULT_KIOSK, system: str | None = None):
     """Run a model call under the concurrency guard.
 
     Returns (status, reply, queue_position): status is "ok", "queued" (503: waited
@@ -225,7 +228,7 @@ async def _guarded_model_call(message: str, lang: str, image_base64: str | None,
         _waiting -= 1
     try:
         try:
-            reply = await _call_ollama(message, lang, image_base64, kiosk)
+            reply = await _call_ollama(message, lang, image_base64, kiosk, system)
             outcome = "ok"
         except ModelFailure as failure:
             reply, outcome = None, failure.outcome
@@ -277,6 +280,32 @@ async def health():
     }
 
 
+async def _raft_answer(req, user: str):
+    """Raft: find passages on the shelf, answer only from them, cite them, guard child doses."""
+    t0 = time.monotonic()
+    lang = "en" if (req.lang or "es").startswith("en") else "es"
+    db = raft_library.open_db(RAFT_DB_PATH)
+    if db is None:
+        _log_call("chat", user, "shelf_missing", t0)
+        return JSONResponse(status_code=503, content={
+            "reply": "The Raft library is not installed on this box yet." if lang == "en" else "La biblioteca de Raft aún no está instalada en este equipo.",
+            "stub": True, "shelf_missing": True, "sources": []})
+    try:
+        passages = raft_retrieve.search(db, req.message)
+    finally:
+        db.close()
+    if not passages:  # nothing on the shelf: skip the model, say so at once
+        _log_call("chat", user, "not_covered", t0)
+        return JSONResponse(content={"reply": raft_prompt.NOT_COVERED[lang], "stub": False, "ollama_available": True,
+                                     "model": OLLAMA_MODEL, "sources": [], "warn": None, "kiosk": "raft"})
+    system = raft_prompt.with_sources(passages) + _language_hint(req.lang)
+    status, reply, queue_pos = await _guarded_model_call(req.message, req.lang, None, "chat", user, "raft", system)
+    sources = [{"n": i, "title": p["title"], "doc": p["doc"], "page": p["page"], "excerpt": p["text"][:400]}
+               for i, p in enumerate(passages, 1)]
+    warn = dose_warning(req.message, reply) if status == "ok" and reply else None
+    return _response(status, reply, req.lang, queue_pos, extra={"sources": sources, "warn": warn, "kiosk": "raft"})
+
+
 @app.post("/api/chat")
 async def chat(request: Request):
     user, denied = _require_key(request, allow_app=True)
@@ -291,6 +320,8 @@ async def chat(request: Request):
     problem = _kiosk_problem(user, req.kiosk)
     if problem:
         return problem
+    if req.kiosk == "raft":
+        return await _raft_answer(req, user)
     status, reply, queue_pos = await _guarded_model_call(
         req.message, req.lang, req.image_base64, "chat", user, req.kiosk
     )
