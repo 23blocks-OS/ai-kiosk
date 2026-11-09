@@ -8,6 +8,9 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **Who stops a visitor from holding the GPU?** Cloudflare rate-limit rule (no code) or a backend limit. Decides [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9).
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
+## In progress
+- **Hardening** — #8, #10, #11, #24, #28 (part of #12). [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
+
 ## Audit findings (ponytail audit, 2026-11-08)
 
 Finding numbers are from the audit report. Issue numbers are GitHub's.

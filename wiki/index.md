@@ -8,6 +8,7 @@
 ## Specs
 - [Template](specs/TEMPLATE.md) — every spec starts here.
 - [Spec 22: apps are service users with keys](specs/issue-22-apps-as-service-users.md) — done
+- [Spec: hardening (#8, #10, #11, #24, #28)](specs/hardening-8-10-11-24-28.md) — building
 
 ## Decisions
 - [0001 Kiosk selector is the front page](decisions/0001-kiosk-selector.md)
