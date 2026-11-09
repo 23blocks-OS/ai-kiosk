@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.ico">
+<title>Shop Operator — Operador de tienda</title>
+<link rel="stylesheet" href="../../packages/shared-ui/pip.css">
+<link rel="stylesheet" href="../../packages/shared-ui/agent.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="kiosk">
+  <header class="kiosk-header">
+    <div>
+      <h1 data-i18n="title">Operador de tienda</h1>
+      <p class="subtitle" data-i18n="subtitle">Muéstrame la pantalla de tu programa y dime qué quieres hacer. Te digo en qué botón tocar.</p>
+    </div>
+    <div class="header-actions">
+      <a class="home-button" id="home" href="../launcher/" data-i18n="home">Inicio</a>
+      <div class="lang-toggle" role="group" aria-label="Idioma / Language">
+        <button type="button" id="lang-es" aria-pressed="true">Español</button>
+        <button type="button" id="lang-en" aria-pressed="false">English</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="agent" aria-label="Agente / Agent">
+    <div class="agent-visual-row">
+      <div class="agent-visual" id="agent-visual" data-visual="waveform" data-state="idle" data-looking="false" aria-hidden="true">
+        <div class="orb-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <p class="agent-status" data-state="idle" id="status">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="status-text" data-i18n="status_idle">Estoy lista para ayudarte</span>
+      </p>
+    </div>
+    <div class="visual-switch" role="group" aria-label="Aspecto / Look">
+      <button type="button" id="visual-waveform" aria-pressed="true" data-i18n="visual_waveform">Onda</button>
+      <button type="button" id="visual-mascot" aria-pressed="false" aria-disabled="true" data-i18n="visual_mascot">Mascota · pronto</button>
+      <button type="button" id="visual-face" aria-pressed="false" aria-disabled="true" data-i18n="visual_face">Rostro · pronto</button>
+    </div>
+    <p class="visual-soon" id="visual-soon" hidden></p>
+
+    <div class="samples" role="group" aria-labelledby="samples-label">
+      <p id="samples-label" class="samples-label" data-i18n="samples_label">Pantallas de ejemplo (tienda ficticia)</p>
+      <button type="button" data-sample="sales" data-i18n="sample_sales">Ventas</button>
+      <button type="button" data-sample="inventory" data-i18n="sample_inventory">Inventario</button>
+      <button type="button" data-sample="settings" data-i18n="sample_settings">Configuración</button>
+    </div>
+
+    <div class="chat" id="chat" aria-live="polite">
+      <p class="chat-empty" id="chat-empty" data-i18n="chat_empty">Elige una pantalla de ejemplo o sube una captura en la ventanita de abajo a la derecha. Luego pregúntame cómo hacer algo, o toca el micrófono y habla.</p>
+    </div>
+
+    <p class="voice-note" id="voice-note" hidden></p>
+
+    <form class="composer" id="composer">
+      <button type="button" class="mic-button" id="mic" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v3"/></svg>
+        <span data-i18n="mic_talk">Hablar</span>
+      </button>
+      <label class="visually-hidden" for="input" data-i18n="input_label">Escribe tu pregunta</label>
+      <input id="input" type="text" autocomplete="off" data-i18n-placeholder="input_placeholder" placeholder="Por ejemplo: ¿cómo imprimo el reporte del día?">
+      <button type="submit" class="send-button" data-i18n="send">Enviar</button>
+    </form>
+
+    <p class="privacy" data-i18n="privacy">Nada se graba. Nada sale de este equipo.</p>
+  </section>
+</main>
+
+<!-- Picture-in-Picture: what the agent is seeing -->
+<aside class="pip" id="pip" aria-label="Lo que estoy viendo">
+  <div class="pip-header" id="pip-header">
+    <span class="pip-title" data-i18n="pip_title">Lo que estoy viendo</span>
+    <span class="pip-badge" id="pip-badge" data-i18n="pip_source">Pantalla</span>
+    <span class="pip-live is-off" id="pip-live" data-i18n="pip_off">Vacía</span>
+  </div>
+  <div class="pip-body" id="pip-body">
+    <video id="pip-video" autoplay playsinline muted hidden></video>
+    <img id="pip-img" hidden alt="">
+    <canvas id="pip-canvas" aria-hidden="true"></canvas>
+    <div class="pip-empty" id="pip-empty">
+      <p data-i18n="pip_empty">Aún no veo ninguna pantalla. Elige un ejemplo o sube una captura.</p>
+      <button type="button" class="pip-enable" id="pip-enable" hidden data-i18n="pip_enable">Activar cámara</button>
+      <button type="button" class="pip-enable pip-upload" id="pip-upload-empty" data-i18n="pip_upload">Subir captura</button>
+      <p class="pip-note" data-i18n="pip_upload_note">La captura se usa solo para esta respuesta, no se guarda.</p>
+    </div>
+  </div>
+  <div class="pip-controls">
+    <button type="button" id="pip-upload" data-i18n="pip_upload">Subir captura</button>
+    <button type="button" id="pip-freeze" disabled hidden data-i18n="pip_freeze">Congelar</button>
+    <button type="button" class="pip-close" id="pip-close" aria-label="Ocultar ventana / Hide window">×</button>
+  </div>
+  <input type="file" id="pip-file" accept="image/*" hidden>
+</aside>
+<button type="button" class="pip-restore" id="pip-restore" hidden data-i18n="pip_restore">Mostrar lo que veo</button>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
