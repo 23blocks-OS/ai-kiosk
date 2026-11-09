@@ -44,9 +44,10 @@ Copy `.env.example` to `.env` if you want to change the defaults:
 | --- | --- | --- |
 | `OLLAMA_HOST` | `http://localhost:11434` | Where Ollama listens (same box) |
 | `OLLAMA_MODEL` | `qwen3-vl:4b` | Model name in Ollama |
-| `OLLAMA_TIMEOUT_SECONDS` | `120` | Max wait for one model reply |
+| `OLLAMA_TIMEOUT_SECONDS` | `90` | Max wait for one model reply. Keep it under Cloudflare's tunnel limit (about 100 s), so the backend answers first. |
 | `MAX_CONCURRENT_MODEL_CALLS` | `2` | Model calls running at once |
 | `MAX_QUEUE_WAIT_SECONDS` | `30` | Max queue wait before HTTP 503 |
+| `MAX_BODY_MB` | `8` | Biggest `POST` body for `/api/*` and `/v1/*`. Over it: 413. No `Content-Length`: 411. A question over 4,000 characters: 413. |
 
 ## Run it on the Jetson (Saturday)
 
@@ -94,6 +95,42 @@ curl https://aureliano.twofourai.com/v1/chat/completions \
 
 **Users and keys** live in `services/agent-backend/api-keys.json`: `{"name": "key", ...}`. The file is read on every request, so edits apply at once. It is in `.gitignore` and never goes to GitHub; `api-keys.example.json` shows the shape. Add a user: `openssl rand -hex 24`, then add the line. Remove a user: delete the line. No file means the API is closed.
 
-The kiosk page's own `/api/chat`, `/api/vision` and `/health` stay open, because a public page cannot hold a secret.
+**Every route that reaches the model needs a key**, including the kiosk page's own `/api/chat` and `/api/vision`. Only `/health` and the page files are open.
+
+**Apps are service users.** An app is a name in `api-keys.json` like `app:intercambio` (the kiosk folder `kiosk-intercambio` maps to `app:intercambio`). The server hands each page its key at `/apps/<kiosk>/config.js` (never from git, `Cache-Control: no-store`), and the page sends it as `Authorization: Bearer`.
+
+| Key | `/api/*` (kiosk routes) | `/v1/*` (team API) |
+| --- | --- | --- |
+| Person or agent (`alice`) | yes | yes |
+| App (`app:intercambio`) | yes | **no, 403** |
+
+**A page is public, so an app key is an identity tag, not a secret.** Anyone who opens the kiosk can read it. It gives you named logs (`api user=app:intercambio`) and per-app revoke and rotate. It does not stop abuse of `/api/*`: see issues #8 and #9. It must never work on `/v1/*`, or every visitor would get the team API.
+
+To add a kiosk: `openssl rand -hex 24`, add `"app:<name>": "<key>"` to `api-keys.json`, and load `config.js` before `app.js` in its page. To rotate: edit the file; pages pick the new key on the next load. No file or no `app:` line means the page gets a 404 for `config.js` and shows "this app is not authorized".
+
+Local dev: run the backend (not a plain static server) with an `api-keys.json` that has an `app:intercambio` line.
 
 **App-only hostnames.** `APP_ONLY_HOSTS=kiosk.ciaocorp.com` makes `/v1/*` a 404 on that hostname, even with a valid key. The team hostname (`aureliano.twofourai.com`) and the tailnet keep both the app and the API.
+
+
+## Honest outcomes and the call log
+
+Each model call ends in one outcome:
+
+| Outcome | Visitor sees | HTTP |
+| --- | --- | --- |
+| `ok` | The model's reply | 200 |
+| `timeout` | "The agent is taking longer than usual. Please try again." (`timeout: true`, `stub: false`: the model is connected, only slow) | 504 |
+| `queued` | "You're next in line" | 503 |
+| `unreachable`, `error`, `empty` | The labelled stub (`stub: true`) | 200 |
+
+The model stays loaded (`keep_alive: -1`), and the backend loads it at startup, so the first visitor is not the one who waits. Ollama still swaps it out if a team caller asks for another model.
+
+**Log** (`journalctl --user -u ai-kiosk`). One line per call, never the question, the answer, an image, a visitor address or a key:
+
+```
+call route=chat user=app:intercambio outcome=ok ms=5120 model=qwen3-vl:4b-instruct
+model_error reason=ReadTimeout
+refused path=/api/chat why=bad_key        (missing | bad_key | app_key_on_v1)
+warmup model=qwen3-vl:4b-instruct outcome=ok
+```
