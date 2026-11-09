@@ -18,6 +18,8 @@ import base64
 import hmac
 import json
 import os
+import time
+from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI, Request
@@ -27,9 +29,12 @@ from pydantic import BaseModel
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3-vl:4b")
-OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "120"))
+# Answer before Cloudflare gives up on a tunnel request (about 100 s).
+OLLAMA_TIMEOUT = float(os.environ.get("OLLAMA_TIMEOUT_SECONDS", "90"))
 MAX_CONCURRENT = int(os.environ.get("MAX_CONCURRENT_MODEL_CALLS", "2"))
 MAX_QUEUE_WAIT = float(os.environ.get("MAX_QUEUE_WAIT_SECONDS", "30"))
+MAX_BODY_BYTES = int(float(os.environ.get("MAX_BODY_MB", "8")) * 1_000_000)
+MAX_QUESTION_CHARS = 4000
 # Who may call /v1/*: a JSON file {"name": "key"}, never committed (see api-keys.example.json).
 API_KEYS_FILE = os.environ.get(
     "API_KEYS_FILE", os.path.join(os.path.dirname(os.path.abspath(__file__)), "api-keys.json")
@@ -48,7 +53,25 @@ SYSTEM_PROMPT = (
     "a document you cannot read."
 )
 
-app = FastAPI(title="ai-kiosk agent-backend")
+async def _warm_model():
+    """Load the model at startup so the first visitor is not the one who waits."""
+    outcome = "ok"
+    try:
+        async with httpx.AsyncClient(timeout=300.0, trust_env=False) as client:
+            await client.post(f"{OLLAMA_HOST}/api/generate", json={"model": OLLAMA_MODEL, "keep_alive": -1})
+    except Exception as e:
+        outcome = type(e).__name__
+    print(f"warmup model={OLLAMA_MODEL} outcome={outcome}", flush=True)
+
+
+@asynccontextmanager
+async def _lifespan(_app):
+    task = asyncio.create_task(_warm_model())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="ai-kiosk agent-backend", lifespan=_lifespan)
 
 # Concurrency guard: one semaphore for all model calls.
 _model_sem = asyncio.Semaphore(MAX_CONCURRENT)
@@ -91,6 +114,30 @@ def _queue_reply(lang: str) -> str:
     )
 
 
+def _timeout_reply(lang: str) -> str:
+    if (lang or "es").startswith("en"):
+        return "The agent is taking longer than usual. Please try again in a moment."
+    return "El agente está tardando más de lo normal. Inténtalo de nuevo en un momento."
+
+
+class ModelFailure(Exception):
+    """The model call failed. outcome: timeout | unreachable | error | empty."""
+
+    def __init__(self, outcome: str):
+        super().__init__(outcome)
+        self.outcome = outcome
+
+
+def _log_error(e: Exception):
+    print(f"model_error reason={type(e).__name__}", flush=True)  # class name only, never content
+
+
+def _log_call(route: str, user: str, outcome: str, t0: float, model: str | None = None):
+    # One line per model call. Never the question, the answer, an image, an address or a key.
+    ms = round((time.monotonic() - t0) * 1000)
+    print(f"call route={route} user={user} outcome={outcome} ms={ms} model={model or OLLAMA_MODEL}", flush=True)
+
+
 async def _ollama_available() -> bool:
     try:
         # trust_env=False: Ollama is local-only; never route it through
@@ -102,8 +149,8 @@ async def _ollama_available() -> bool:
         return False
 
 
-async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str | None:
-    """Return the model's reply, or None if Ollama failed (caller falls back)."""
+async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str:
+    """Return the model's reply, or raise ModelFailure (the caller falls back honestly)."""
     user_msg: dict = {"role": "user", "content": message}
     if image_base64:
         user_msg["images"] = [image_base64]
@@ -114,54 +161,76 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str
             user_msg,
         ],
         "stream": False,
+        "keep_alive": -1,  # keep the model loaded: a cold start is longer than Cloudflare waits
     }
     try:
         async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT, trust_env=False) as client:
             resp = await client.post(f"{OLLAMA_HOST}/api/chat", json=payload)
             resp.raise_for_status()
             data = resp.json()
-            content = (data.get("message") or {}).get("content", "")
-            return content.strip() or None
-    except Exception:
-        return None
+    except httpx.TimeoutException as e:
+        _log_error(e)
+        raise ModelFailure("timeout")
+    except httpx.ConnectError as e:
+        _log_error(e)
+        raise ModelFailure("unreachable")
+    except Exception as e:
+        _log_error(e)
+        raise ModelFailure("error")
+    content = ((data.get("message") or {}).get("content", "") or "").strip()
+    if not content:
+        raise ModelFailure("empty")
+    return content
 
 
-async def _guarded_model_call(message: str, lang: str, image_base64: str | None):
+async def _guarded_model_call(message: str, lang: str, image_base64: str | None, route: str = "chat", user: str = "-"):
     """Run a model call under the concurrency guard.
 
-    Returns (status, reply, queue_position): status is "ok", "queued"
-    (503 — waited too long), or "fallback" (Ollama failed).
+    Returns (status, reply, queue_position): status is "ok", "queued" (503: waited
+    too long), "timeout" (504: the model took too long) or "fallback" (Ollama failed).
     """
     global _waiting
+    t0 = time.monotonic()
     _waiting += 1
     try:
         try:
             await asyncio.wait_for(_model_sem.acquire(), timeout=MAX_QUEUE_WAIT)
         except asyncio.TimeoutError:
+            _log_call(route, user, "queued", t0)
             return "queued", _queue_reply(lang), _waiting
     finally:
         _waiting -= 1
     try:
-        reply = await _call_ollama(message, lang, image_base64)
+        try:
+            reply = await _call_ollama(message, lang, image_base64)
+            outcome = "ok"
+        except ModelFailure as failure:
+            reply, outcome = None, failure.outcome
     finally:
         _model_sem.release()
-    if reply is None:
-        return "fallback", _stub_reply(lang), None
-    return "ok", reply, None
+    _log_call(route, user, outcome, t0)
+    if outcome == "ok":
+        return "ok", reply, None
+    if outcome == "timeout":
+        return "timeout", _timeout_reply(lang), None
+    return "fallback", _stub_reply(lang), None
 
 
 def _response(status: str, reply: str, lang: str, queue_position=None, extra=None):
+    answered = status in ("ok", "timeout")  # on a timeout the model is connected, only slow
     body = {
         "reply": reply,
-        "stub": status != "ok",
-        "ollama_available": status == "ok",
-        "model": OLLAMA_MODEL if status == "ok" else "not-connected",
+        "stub": not answered,
+        "ollama_available": answered,
+        "model": OLLAMA_MODEL if answered else "not-connected",
     }
     if status == "queued":
         body["queue_position"] = queue_position
+    if status == "timeout":
+        body["timeout"] = True
     if extra:
         body.update(extra)
-    code = 503 if status == "queued" else 200
+    code = {"queued": 503, "timeout": 504}.get(status, 200)
     return JSONResponse(status_code=code, content=body)
 
 
@@ -185,9 +254,10 @@ async def chat(request: Request):
         req = ChatRequest(**(await request.json()))
     except Exception:
         return JSONResponse(status_code=400, content={"error": "Body must be JSON with a message."})
-    print(f"api user={user} route=chat", flush=True)
+    if len(req.message) > MAX_QUESTION_CHARS:
+        return JSONResponse(status_code=413, content={"error": f"Question over {MAX_QUESTION_CHARS} characters."})
     status, reply, queue_pos = await _guarded_model_call(
-        req.message, req.lang, req.image_base64
+        req.message, req.lang, req.image_base64, "chat", user
     )
     return _response(status, reply, req.lang, queue_pos)
 
@@ -203,7 +273,6 @@ async def vision(request: Request):
     user, denied = _require_key(request, allow_app=True)
     if denied:
         return denied
-    print(f"api user={user} route=vision", flush=True)
     content_type = request.headers.get("content-type", "")
     message = "Lee este documento y explícalo en español."
     lang = "es"
@@ -246,7 +315,9 @@ async def vision(request: Request):
             },
         )
 
-    status, reply, queue_pos = await _guarded_model_call(message, lang, image_b64)
+    if len(message) > MAX_QUESTION_CHARS:
+        return JSONResponse(status_code=413, content={"error": f"Question over {MAX_QUESTION_CHARS} characters."})
+    status, reply, queue_pos = await _guarded_model_call(message, lang, image_b64, "vision", user)
     return _response(
         status,
         reply,
@@ -277,6 +348,21 @@ async def _no_stale_pages(request: Request, call_next):
 
 
 @app.middleware("http")
+async def _limit_body_size(request: Request, call_next):
+    """Refuse big or length-less POST bodies before anything reads them (an 8 GB board has no room)."""
+    path = request.url.path
+    if request.method == "POST" and (path.startswith("/api/") or path.startswith("/v1/")):
+        length = request.headers.get("content-length")
+        if length is None:
+            return JSONResponse(status_code=411, content={"error": "Content-Length is required."})
+        if not length.isdigit():
+            return JSONResponse(status_code=400, content={"error": "Bad Content-Length."})
+        if int(length) > MAX_BODY_BYTES:
+            return JSONResponse(status_code=413, content={"error": f"Body over {MAX_BODY_BYTES // 1_000_000} MB."})
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def _app_only_hosts(request: Request, call_next):
     host = request.headers.get("host", "").split(":")[0].lower()
     if request.url.path.startswith("/v1") and host in APP_ONLY_HOSTS:
@@ -300,10 +386,14 @@ def _load_keys() -> dict:
     return keys if isinstance(keys, dict) else {}
 
 
+def _presented_key(request: Request) -> str:
+    auth = request.headers.get("authorization", "")
+    return auth[7:] if auth.lower().startswith("bearer ") else request.headers.get("x-api-key", "")
+
+
 def _api_user(request: Request) -> str | None:
     """Name of the user whose key the request carries, or None."""
-    auth = request.headers.get("authorization", "")
-    key = auth[7:] if auth.lower().startswith("bearer ") else request.headers.get("x-api-key", "")
+    key = _presented_key(request)
     found = None
     for name, k in _load_keys().items():
         if key and hmac.compare_digest(str(k), key):
@@ -322,8 +412,11 @@ def _require_key(request: Request, allow_app: bool):
     """Return (user, None) if the key is good, else (None, the error response)."""
     user = _api_user(request)
     if not user:
+        why = "bad_key" if _presented_key(request) else "missing"
+        print(f"refused path={request.url.path} why={why}", flush=True)  # never the key itself
         return None, _unauthorized()
     if user.startswith("app:") and not allow_app:
+        print(f"refused path={request.url.path} why=app_key_on_v1", flush=True)
         return None, JSONResponse(
             status_code=403,
             content={"error": {"message": "This key is not allowed here.", "type": "key_not_allowed"}},
@@ -369,23 +462,36 @@ async def v1_chat(request: Request):
     try:
         body = await request.json()
     except Exception:
-        return JSONResponse(status_code=400, content={"error": {"message": "Body must be JSON."}})
+        body = None
+    if not isinstance(body, dict):
+        return JSONResponse(status_code=400, content={"error": {"message": "Body must be a JSON object."}})
     if body.get("stream"):
         return JSONResponse(status_code=400, content={"error": {"message": "stream is not supported; send stream:false."}})
     body.setdefault("model", OLLAMA_MODEL)
+    t0 = time.monotonic()
     try:
         await asyncio.wait_for(_model_sem.acquire(), timeout=MAX_QUEUE_WAIT)
     except asyncio.TimeoutError:
+        _log_call("v1", user, "queued", t0, str(body["model"]))
         return JSONResponse(status_code=503, content={"error": {"message": "The model is busy. Try again in a moment."}})
+    outcome = "ok"
     try:
-        print(f"v1 user={user} model={body['model']}", flush=True)
         async with httpx.AsyncClient(timeout=OLLAMA_TIMEOUT, trust_env=False) as client:
             r = await client.post(f"{OLLAMA_HOST}/v1/chat/completions", json=body)
+        if r.status_code != 200:
+            outcome = "error"
         return Response(content=r.content, status_code=r.status_code, media_type="application/json")
-    except Exception:
-        return JSONResponse(status_code=502, content={"error": {"message": "Ollama is not reachable or timed out."}})
+    except httpx.TimeoutException as e:
+        outcome = "timeout"
+        _log_error(e)
+        return JSONResponse(status_code=504, content={"error": {"message": "The model took too long. Try again."}})
+    except Exception as e:
+        outcome = "unreachable"
+        _log_error(e)
+        return JSONResponse(status_code=502, content={"error": {"message": "Ollama is not reachable."}})
     finally:
         _model_sem.release()
+        _log_call("v1", user, outcome, t0, str(body["model"]))
 
 
 @app.get("/", include_in_schema=False)

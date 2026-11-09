@@ -44,9 +44,10 @@ Copy `.env.example` to `.env` if you want to change the defaults:
 | --- | --- | --- |
 | `OLLAMA_HOST` | `http://localhost:11434` | Where Ollama listens (same box) |
 | `OLLAMA_MODEL` | `qwen3-vl:4b` | Model name in Ollama |
-| `OLLAMA_TIMEOUT_SECONDS` | `120` | Max wait for one model reply |
+| `OLLAMA_TIMEOUT_SECONDS` | `90` | Max wait for one model reply. Keep it under Cloudflare's tunnel limit (about 100 s), so the backend answers first. |
 | `MAX_CONCURRENT_MODEL_CALLS` | `2` | Model calls running at once |
 | `MAX_QUEUE_WAIT_SECONDS` | `30` | Max queue wait before HTTP 503 |
+| `MAX_BODY_MB` | `8` | Biggest `POST` body for `/api/*` and `/v1/*`. Over it: 413. No `Content-Length`: 411. A question over 4,000 characters: 413. |
 
 ## Run it on the Jetson (Saturday)
 
@@ -110,3 +111,26 @@ To add a kiosk: `openssl rand -hex 24`, add `"app:<name>": "<key>"` to `api-keys
 Local dev: run the backend (not a plain static server) with an `api-keys.json` that has an `app:intercambio` line.
 
 **App-only hostnames.** `APP_ONLY_HOSTS=kiosk.ciaocorp.com` makes `/v1/*` a 404 on that hostname, even with a valid key. The team hostname (`aureliano.twofourai.com`) and the tailnet keep both the app and the API.
+
+
+## Honest outcomes and the call log
+
+Each model call ends in one outcome:
+
+| Outcome | Visitor sees | HTTP |
+| --- | --- | --- |
+| `ok` | The model's reply | 200 |
+| `timeout` | "The agent is taking longer than usual. Please try again." (`timeout: true`, `stub: false`: the model is connected, only slow) | 504 |
+| `queued` | "You're next in line" | 503 |
+| `unreachable`, `error`, `empty` | The labelled stub (`stub: true`) | 200 |
+
+The model stays loaded (`keep_alive: -1`), and the backend loads it at startup, so the first visitor is not the one who waits. Ollama still swaps it out if a team caller asks for another model.
+
+**Log** (`journalctl --user -u ai-kiosk`). One line per call, never the question, the answer, an image, a visitor address or a key:
+
+```
+call route=chat user=app:intercambio outcome=ok ms=5120 model=qwen3-vl:4b-instruct
+model_error reason=ReadTimeout
+refused path=/api/chat why=bad_key        (missing | bad_key | app_key_on_v1)
+warmup model=qwen3-vl:4b-instruct outcome=ok
+```
