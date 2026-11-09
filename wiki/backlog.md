@@ -35,6 +35,8 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | — | [#24](https://github.com/23blocks-OS/ai-kiosk/issues/24) | should-fix | Timeout shows "no local model connected", a false message (follow-up of #23) | — | done 2026-11-09 |
 | — | [#28](https://github.com/23blocks-OS/ai-kiosk/issues/28) | should-fix | Logs too thin to diagnose failures (errors swallowed, no duration or outcome) | — | done 2026-11-09 |
 | 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
+| 14 | [https://github.com/23blocks-OS/ai-kiosk/issues/49](https://github.com/23blocks-OS/ai-kiosk/issues/49) | must-fix | Ollama OOM-killed by one long generation on the team API | [spec](specs/performance-plan.md) | open |
+| 15 | [https://github.com/23blocks-OS/ai-kiosk/issues/50](https://github.com/23blocks-OS/ai-kiosk/issues/50) | must-fix | /v1 resets keep-alive to 5 min; next team call waits 50 s or fails | [spec](specs/performance-plan.md) | open, needs Juan (sudo) |
 
 ## Ideas (no issue yet)
 - **Shared kiosk shell.** `kiosk-shop` is a copy of `kiosk-intercambio` (about 540 lines of JS each). Extract the shared parts when a fourth page appears.
