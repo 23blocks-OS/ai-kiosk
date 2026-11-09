@@ -11,6 +11,7 @@
 - [0003 Team API with API keys](decisions/0003-team-api-and-keys.md)
 - [0004 Who sees what: network rules](decisions/0004-network-rules.md)
 - [0005 Backend runs as a user service on Aurelium](decisions/0005-user-service-on-aurelium.md)
+- [0006 Home button and idle reset](decisions/0006-home-and-idle-reset.md)
 
 ## Sources
 - [2026-11-08 Lares handoff](sources/2026-11-08-lares-handoff.md)

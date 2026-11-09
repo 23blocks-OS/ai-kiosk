@@ -10,14 +10,14 @@ Facts from the Lares handoff ([source](sources/2026-11-08-lares-handoff.md)) and
 
 ## How the app runs
 - Code: `~/ai-kiosk` (clone of `23blocks-OS/ai-kiosk`). Update with `git pull`.
-- Backend: user service `ai-kiosk`, port 8000, all interfaces, `--no-proxy-headers`. Venv at `~/ai-kiosk/.venv`.
+- Backend: user service `ai-kiosk`, port 8000, all interfaces, `--no-proxy-headers`, env `APP_ONLY_HOSTS=kiosk.ciaocorp.com`. Venv at `~/ai-kiosk/.venv`.
 - Keys: `~/ai-kiosk/services/agent-backend/api-keys.json`. Gitignored. See [decision 0003](decisions/0003-team-api-and-keys.md).
 - Tunnel: Cloudflare Tunnel `cloudflared` (system service, managed in the Cloudflare dashboard) sends both hostnames to `localhost:8000`.
 
 ## URLs
 | URL | App | API |
 | --- | --- | --- |
-| `https://kiosk.ciaocorp.com` | yes | no (rule pending, PR #4) |
+| `https://kiosk.ciaocorp.com` | yes | no |
 | `https://aureliano.twofourai.com` | yes | yes, with key |
 | tailnet `:8000` | yes | yes, with key |
 
