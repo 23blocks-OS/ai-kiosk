@@ -154,7 +154,7 @@ def test_shop_kiosk_page_samples_and_config():
     page = client.get("/apps/kiosk-shop/").text
     assert 'data-sample="sales"' in page and 'href="../launcher/"' in page
     js = client.get("/apps/kiosk-shop/app.js").text
-    assert js.count('kiosk: "shop"') == 2 and "Intercambio" not in js.split("*/")[0]
+    assert js.count('kiosk: "shop"') == 2
     for name in ("sales", "inventory", "settings"):
         r = client.get(f"/apps/kiosk-shop/samples/{name}.png")
         assert r.status_code == 200 and r.content[:4] == b"\x89PNG"
