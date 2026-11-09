@@ -180,3 +180,20 @@ def test_prompt_follows_visitor_language_not_a_spanish_default(tmp_path, monkeyp
     assert "Spanish is the default" not in system
     assert "language of the visitor's last message" in system
     assert system.endswith("answer in English.")
+
+
+def test_vision_upload_sends_the_image_to_the_model(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch, {"message": {"content": "a letter"}})
+    r = client.post("/api/vision", files={"image": ("a.png", b"\x89PNG-bytes", "image/png")}, data={"lang": "en"}, headers=APP)
+    assert r.status_code == 200 and r.json()["reply"] == "a letter"
+    assert r.json()["bytes_received"] == len(b"\x89PNG-bytes")
+    assert calls[-1][1]["messages"][1]["images"]
+
+
+def test_vision_without_an_image_is_400_and_never_reaches_the_model(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    r = client.post("/api/vision", json={"message": "read this"}, headers=APP)
+    assert r.status_code == 400 and r.json()["stub"] is True
+    assert calls == []

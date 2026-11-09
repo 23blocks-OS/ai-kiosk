@@ -287,7 +287,19 @@
     } catch (e) { setStatus("idle"); }
   }
 
+  var thinking = false;
+
   async function answer(text) {
+    if (thinking) return; /* one question at a time: extra sends would take a second model slot */
+    thinking = true;
+    try {
+      await ask(text);
+    } finally {
+      thinking = false;
+    }
+  }
+
+  async function ask(text) {
     addMessage("user", text);
     setStatus("thinking");
     /* Ask the backend (Ollama when it is up). If it cannot be reached
@@ -307,7 +319,7 @@
   $("composer").addEventListener("submit", function (e) {
     e.preventDefault();
     var text = input.value.trim();
-    if (!text) return;
+    if (!text || thinking) return; /* keep the text until the agent is free */
     input.value = "";
     answer(text);
   });
