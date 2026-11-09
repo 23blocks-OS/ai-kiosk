@@ -7,7 +7,7 @@
 
 ## Specs
 - [Template](specs/TEMPLATE.md) — every spec starts here.
-- [Spec 22: apps are service users with keys](specs/issue-22-apps-as-service-users.md) — draft, waits for Juan
+- [Spec 22: apps are service users with keys](specs/issue-22-apps-as-service-users.md) — done
 
 ## Decisions
 - [0001 Kiosk selector is the front page](decisions/0001-kiosk-selector.md)
@@ -17,6 +17,7 @@
 - [0005 Backend runs as a user service on Aurelium](decisions/0005-user-service-on-aurelium.md)
 - [0006 Home button and idle reset](decisions/0006-home-and-idle-reset.md)
 - [0007 The kiosk uses the instruct model](decisions/0007-kiosk-uses-the-instruct-model.md)
+- [0008 Apps are service users with API keys](decisions/0008-apps-are-service-users.md)
 
 ## Sources
 - [2026-11-08 Lares handoff](sources/2026-11-08-lares-handoff.md)

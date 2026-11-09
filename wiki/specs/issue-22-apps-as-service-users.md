@@ -1,8 +1,8 @@
 # Spec 22 — Apps are service users: every model call carries an API key
 
 - **Issue:** [#22](https://github.com/23blocks-OS/ai-kiosk/issues/22)
-- **Date:** 2026-11-08. **Status:** draft, waits for Juan's approval.
-- **Approved by:** not yet.
+- **Date:** 2026-11-08. **Status:** done.
+- **Approved by:** Juan, 2026-11-08: "issue 22 spec approved, lets build it".
 
 ## Goal
 Every route that reaches the model needs an API key. The kiosk apps are named service users, and the page sends its key. The logs show who called. A key can be revoked or rotated per app.
@@ -75,4 +75,11 @@ Read back from outside, on `kiosk.ciaocorp.com`, `aureliano.twofourai.com` and t
 - **Open question for Juan:** should the `app:` keys also be limited to calls that come from the app's own hostnames (the `Origin` header)? It stops casual use from other websites, but a script can fake it. My default: no, keep it simple.
 
 ## Result
-Not built yet.
+Built and live, 2026-11-08. PR [#25](https://github.com/23blocks-OS/ai-kiosk/pull/25), merge commit `b252627`. Decision: [0008](../decisions/0008-apps-are-service-users.md).
+
+- 20 tests pass (7 new in `tests/test_app_keys.py`; 4 failed on the old code first).
+- Checked from outside on `kiosk.ciaocorp.com`, `aureliano.twofourai.com` and the tailnet: `/api/vision` with no key and `/api/chat` with a wrong key return 401; `config.js` returns 200 with `Cache-Control: no-store` and a key; an `app:` key on `/v1/models` returns 403 (404 on `kiosk.ciaocorp.com`, which has no `/v1`); a person key returns 200 on the team paths.
+- Real visitor flow on `https://kiosk.ciaocorp.com`: the page asked a question and got a model answer in about 20 s; the log showed `api user=app:intercambio route=chat`.
+- **Differed from the spec:** check 5 (remove the app key and see the "not authorized" message) was done on a local server, not on the live system, so visitors did not see a broken kiosk.
+- **Side effect:** the key file reader now accepts only a JSON object (half of [#11](https://github.com/23blocks-OS/ai-kiosk/issues/11)).
+- **Answer to the open question:** app keys are not limited by `Origin`, as the spec's default said.

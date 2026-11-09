@@ -8,9 +8,6 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **Who stops a visitor from holding the GPU?** Cloudflare rate-limit rule (no code) or a backend limit. Decides [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9).
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
-## Decided, spec waiting for approval
-- **Apps are service users with keys** — [#22](https://github.com/23blocks-OS/ai-kiosk/issues/22), [spec](specs/issue-22-apps-as-service-users.md). Juan's decision, 2026-11-08. An `app:` key works on `/api/*` only, never on `/v1/*`. Spec is a draft.
-
 ## Audit findings (ponytail audit, 2026-11-08)
 
 Finding numbers are from the audit report. Issue numbers are GitHub's.
@@ -44,4 +41,5 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 - 2026-11-08 — `kiosk.ciaocorp.com` gets the app only (PR #4). Checked from outside: `/v1` is 404 there, even with a key.
 - 2026-11-08 — Home button and idle reset (PR #6). Wiki (PR #5).
 - 2026-11-08 — Kiosk STUB bug ([#23](https://github.com/23blocks-OS/ai-kiosk/issues/23)): switched to the instruct model. Checked from outside.
+- 2026-11-08 — Apps are service users with keys ([#22](https://github.com/23blocks-OS/ai-kiosk/issues/22), PR #25, [spec](specs/issue-22-apps-as-service-users.md)). Checked from outside.
 - 2026-11-08 — Record repo pushed to `3Metas/ciao-kiosk`.
