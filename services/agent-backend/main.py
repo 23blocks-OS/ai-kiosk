@@ -266,6 +266,17 @@ APP_ONLY_HOSTS = {h.strip().lower() for h in os.environ.get("APP_ONLY_HOSTS", ""
 
 
 @app.middleware("http")
+async def _no_stale_pages(request: Request, call_next):
+    """Cloudflare adds max-age=14400 (4 hours) to files with no Cache-Control, so a
+    browser would keep the old page after a deploy. no-cache = check each time (ETag: cheap)."""
+    response = await call_next(request)
+    path = request.url.path
+    if (path.startswith("/apps/") or path.startswith("/packages/")) and "cache-control" not in response.headers:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.middleware("http")
 async def _app_only_hosts(request: Request, call_next):
     host = request.headers.get("host", "").split(":")[0].lower()
     if request.url.path.startswith("/v1") and host in APP_ONLY_HOSTS:

@@ -51,7 +51,7 @@
       voice_error: "No pude escucharte. Intenta de nuevo o escribe tu pregunta.",
       who_you: "Tú",
       who_agent: "Agente",
-      demo_reply: "Esto es una demostración: todavía no estoy conectado al modelo local. Cuando el Jetson esté listo, leeré el documento que se ve en la ventanita y te lo explicaré aquí."
+      demo_reply: "No pude conectar con el agente ahora mismo. Inténtalo de nuevo en un momento."
     },
     en: {
       home: "Home",
@@ -98,7 +98,7 @@
       voice_error: "I couldn't hear you. Try again or type your question.",
       who_you: "You",
       who_agent: "Agent",
-      demo_reply: "This is a demo: I'm not connected to the local model yet. When the Jetson is ready, I'll read the document in the small window and explain it to you here."
+      demo_reply: "I couldn't reach the agent right now. Please try again in a moment."
     }
   };
 
