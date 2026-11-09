@@ -8,6 +8,9 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **Who stops a visitor from holding the GPU?** Cloudflare rate-limit rule (no code) or a backend limit. Decides [#9](https://github.com/23blocks-OS/ai-kiosk/issues/9).
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
+## Planned (spec drafted, waits for Juan's approval)
+- [#35](https://github.com/23blocks-OS/ai-kiosk/issues/35) Per-kiosk prompt and keys, [#36](https://github.com/23blocks-OS/ai-kiosk/issues/36) Shop Operator sample, [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37) Lifeboat sample. [Spec](specs/new-kiosk-samples.md). Juan, 2026-11-09: "lets now build the other samples we have plan, write the backlog item, and the spec first."
+
 ## In progress
 - ~~**Hardening** — #8, #10, #11, #24, #28 (part of #12).~~ Done 2026-11-09, PR #30. [Spec](specs/hardening-8-10-11-24-28.md). Juan: "go go, go, we are way behind on this."
 
@@ -34,7 +37,6 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | 13 | [#20](https://github.com/23blocks-OS/ai-kiosk/issues/20) | nice-to-have | Document the one-worker rule | — | open |
 
 ## Ideas (no issue yet)
-- **Per-kiosk prompt.** `/api/chat` has one Intercambio prompt. Add a `kiosk` field when a second kiosk needs different behavior.
 - **Streaming for `/v1`.** Not supported now. Many OpenAI clients stream.
 - **Whisper and Piper (voice)** are not installed on Aurelium.
 - **CORS**, only if browser apps on other sites will call the API.

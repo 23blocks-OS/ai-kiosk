@@ -20,3 +20,4 @@ Append only. Newest at the bottom.
 - 2026-11-08 — Juan asks about logs. Found: errors swallowed, no duration or outcome, every visitor shows as 127.0.0.1. Issue #28. Also: issue #26 (stale page, false demo text) fixed in PR #27, not yet merged.
 - 2026-11-09 — Hardening (PR #30) and `no-store` (PR #29) merged and deployed; wiki PRs #7, #21 merged. Read-backs passed through Cloudflare.
 - 2026-11-09 — Juan: English question got a Spanish answer. Cause: the prompt said "Spanish is the default" and ignored the UI language. Fixed in PR #31: answer in the visitor's language; UI language is the fallback.
+- 2026-11-09 — Juan asks for the other kiosk samples. Issues #35 #36 #37 and spec `new-kiosk-samples.md` written (draft). Also: favicon (PR #34), double-send block, vision tests, placeholder pages deleted (PR #33).
