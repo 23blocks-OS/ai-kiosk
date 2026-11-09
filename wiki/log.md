@@ -27,3 +27,4 @@ Append only. Newest at the bottom.
 - 2026-11-09 — Built and deployed #35 (PR #41), Shop Operator #36 (PR #44) and Raft #37 (PR #45). FEMA 477 refused the automated download (403); shelf is 9 documents. Raft latency 14 to 19 s; refusal and no-match are fast. The child-dose guard cannot be shown live because the model refuses without dose data.
 - 2026-11-09 — Juan: no Spanish content for Raft. Raft page is English only (PR #47). Wiki updated; Spanish shelf is a backlog idea.
 - 2026-11-09 — Tested the team API with Alejandro's and Camilo's keys. Found two must-fix issues (https://github.com/23blocks-OS/ai-kiosk/issues/49, https://github.com/23blocks-OS/ai-kiosk/issues/50). Wrote [performance plan](specs/performance-plan.md), no code.
+- 2026-11-09 — Built the performance plan items 1 and 2: /v1 reply cap and model re-pin. Idle call 50 s to 1.3 s. Memory still tight.

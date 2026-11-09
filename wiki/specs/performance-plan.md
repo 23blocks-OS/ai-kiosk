@@ -26,5 +26,10 @@ Population: one run per row, one machine, tailnet-free path through Cloudflare f
 ## Not in this plan
 No code until Juan approves. No change to the model.
 
-## Result
-Not built.
+## Result (2026-11-09, PR below)
+Built items 1 and 2 without sudo. Juan: "Let's implement the plan and see how things work."
+- `/v1` caps replies at 512 tokens (`V1_MAX_TOKENS`); `max_completion_tokens` is folded in.
+- The backend re-pins the model every 120 s (`WARM_EVERY_SECONDS`), so `/v1` calls no longer leave a 5-minute keep-alive.
+- Read-back on Aurelium: a 512-token reply with 1.5k context took 38.7 s at 13 tok/s and Ollama survived. After 5.5 idle minutes the model still showed `Forever` and the next call took 1.3 s (was 50 s).
+- Not solved: memory. \`llama-server\` holds 5.4 GB; the board shows about 100 MB free after a long reply. The desktop (gnome-shell, gnome-software, Xorg) uses about 0.6 GB. Next step needs Juan: stop the desktop, or move to a smaller quantization (items 3).
+- Items 3 and 4 not started.

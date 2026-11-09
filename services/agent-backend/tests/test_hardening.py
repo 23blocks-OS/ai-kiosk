@@ -234,3 +234,36 @@ def test_vision_takes_the_kiosk_too(tmp_path, monkeypatch):
     calls = fake_ollama(monkeypatch, {"message": {"content": "click Print"}})
     r = client.post("/api/vision", json={"image_base64": "aGk=", "kiosk": "shop"}, headers=PERSON)
     assert r.status_code == 200 and "Shop Operator" in calls[-1][1]["messages"][0]["content"]
+
+
+def test_v1_caps_reply_length(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    f = tmp_path / "k.json"
+    f.write_text('{"alice": "k-alice"}')
+    monkeypatch.setattr(main, "API_KEYS_FILE", str(f))
+    seen = []
+
+    class Resp:
+        status_code = 200
+        content = b"{}"
+
+    class Fake:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def post(self, url, json=None, **k):
+            seen.append(json)
+            return Resp()
+
+    monkeypatch.setattr(main.httpx, "AsyncClient", Fake)
+    c = TestClient(main.app)
+    h = {"Authorization": "Bearer k-alice"}
+    for ask, want in ((None, main.V1_MAX_TOKENS), (5000, main.V1_MAX_TOKENS), (20, 20)):
+        body = {"messages": [{"role": "user", "content": "x"}]}
+        if ask:
+            body["max_tokens"] = ask
+        assert c.post("/v1/chat/completions", json=body, headers=h).status_code == 200
+        assert seen[-1]["max_tokens"] == want
+    c.post("/v1/chat/completions", json={"messages": [], "max_completion_tokens": 9999}, headers=h)
+    assert seen[-1]["max_tokens"] == main.V1_MAX_TOKENS and "max_completion_tokens" not in seen[-1]

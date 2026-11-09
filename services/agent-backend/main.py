@@ -73,15 +73,30 @@ RAFT_DB_PATH = raft_library.DB_PATH
 DEFAULT_KIOSK = "intercambio"
 
 
-async def _warm_model():
-    """Load the model at startup so the first visitor is not the one who waits."""
+# Longest reply a /v1 caller can ask for. One long reply once pushed Ollama over the 8 GB limit.
+V1_MAX_TOKENS = int(os.environ.get("V1_MAX_TOKENS", "512"))
+# Every /v1 call resets Ollama's keep-alive to its 5-minute default, so we re-pin the model.
+WARM_EVERY_SECONDS = float(os.environ.get("WARM_EVERY_SECONDS", "120"))
+
+
+async def _warm_once():
     outcome = "ok"
     try:
         async with httpx.AsyncClient(timeout=300.0, trust_env=False) as client:
             await client.post(f"{OLLAMA_HOST}/api/generate", json={"model": OLLAMA_MODEL, "keep_alive": -1})
     except Exception as e:
         outcome = type(e).__name__
-    print(f"warmup model={OLLAMA_MODEL} outcome={outcome}", flush=True)
+    return outcome
+
+
+async def _warm_model():
+    """Load the model at startup, then keep it loaded."""
+    print(f"warmup model={OLLAMA_MODEL} outcome={await _warm_once()}", flush=True)
+    while True:
+        await asyncio.sleep(WARM_EVERY_SECONDS)
+        outcome = await _warm_once()
+        if outcome != "ok":
+            print(f"rewarm model={OLLAMA_MODEL} outcome={outcome}", flush=True)
 
 
 @asynccontextmanager
@@ -544,6 +559,9 @@ async def v1_chat(request: Request):
     if body.get("stream"):
         return JSONResponse(status_code=400, content={"error": {"message": "stream is not supported; send stream:false."}})
     body.setdefault("model", OLLAMA_MODEL)
+    alt = body.pop("max_completion_tokens", None)
+    asked = body.get("max_tokens") if body.get("max_tokens") is not None else alt
+    body["max_tokens"] = min(asked, V1_MAX_TOKENS) if isinstance(asked, int) and asked > 0 else V1_MAX_TOKENS
     t0 = time.monotonic()
     try:
         await asyncio.wait_for(_model_sem.acquire(), timeout=MAX_QUEUE_WAIT)
