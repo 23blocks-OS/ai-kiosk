@@ -90,14 +90,9 @@ def test_v1_rejects_streaming(tmp_path, monkeypatch):
     assert r.status_code == 400
 
 
-def test_kiosk_api_and_health_need_no_key(monkeypatch):
-    async def fake_model(message, lang, image_base64):
-        return "ok"  # never call the real model from a test
-
-    monkeypatch.setattr(main, "_call_ollama", fake_model)
+def test_health_needs_no_key_but_the_kiosk_api_does():
     assert client.get("/health").status_code == 200
-    r = client.post("/api/chat", json={"message": "hi"})  # no key
-    assert r.status_code == 200 and r.json()["reply"] == "ok"
+    assert client.post("/api/chat", json={"message": "hi"}).status_code == 401  # spec 22
 
 
 def test_kiosk_has_home_button_and_idle_reset():
@@ -135,3 +130,15 @@ def test_v1_checks_key_before_anything_reaches_ollama(tmp_path, monkeypatch):
         # even a broken body gets 401, not 400: the key is checked first
         assert client.post("/v1/chat/completions", content=b"not json", headers=headers).status_code == 401
     assert opened == []
+
+
+def test_pages_are_never_served_stale_after_a_deploy():
+    # "no-store", not "no-cache": Cloudflare overrides no-cache with max-age=14400 for .js/.css
+    for path in ("/apps/kiosk-intercambio/", "/apps/kiosk-intercambio/app.js", "/apps/launcher/styles.css", "/packages/shared-ui/agent.css"):
+        assert client.get(path).headers["cache-control"] == "no-store", path
+
+
+def test_the_false_demo_text_is_gone():
+    js = client.get("/apps/kiosk-intercambio/app.js").text
+    assert "not connected to the local model" not in js and "no estoy conectado" not in js
+    assert "couldn't reach the agent" in js

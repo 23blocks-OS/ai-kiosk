@@ -1,4 +1,5 @@
 {
   "alice": "replace-with-output-of: openssl rand -hex 24",
-  "team-agents": "replace-with-output-of: openssl rand -hex 24"
+  "team-agents": "replace-with-output-of: openssl rand -hex 24",
+  "app:intercambio": "the kiosk page uses this key on /api/* only (never on /v1/*)"
 }
