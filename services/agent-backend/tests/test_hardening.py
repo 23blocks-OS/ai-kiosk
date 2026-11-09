@@ -170,3 +170,13 @@ def test_v1_body_that_is_not_an_object_gets_400(tmp_path, monkeypatch):
     fake_ollama(monkeypatch)
     r = client.post("/v1/chat/completions", json=["not", "an", "object"], headers=PERSON)
     assert r.status_code == 400
+
+
+def test_prompt_follows_visitor_language_not_a_spanish_default(tmp_path, monkeypatch):
+    keys(tmp_path, monkeypatch)
+    calls = fake_ollama(monkeypatch)
+    client.post("/api/chat", json={"message": "How do I book?", "lang": "en"}, headers=APP)
+    system = calls[-1][1]["messages"][0]["content"]
+    assert "Spanish is the default" not in system
+    assert "language of the visitor's last message" in system
+    assert system.endswith("answer in English.")

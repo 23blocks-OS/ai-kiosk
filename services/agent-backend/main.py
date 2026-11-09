@@ -45,7 +45,7 @@ SYSTEM_PROMPT = (
     "You help Spanish-speaking newcomers read, explain, and translate "
     "forms, letters, and notices, and navigate local services and "
     "appointments (where, when, what to bring, how to book). "
-    "Answer in the language the visitor used; Spanish is the default. "
+    "Answer in the language of the visitor's last message. "
     "Use short, clear, plain language. "
     "This is navigation, NOT legal advice: if a question is about "
     "immigration status, rights, or legal strategy, say so plainly "
@@ -149,6 +149,12 @@ async def _ollama_available() -> bool:
         return False
 
 
+def _language_hint(lang: str) -> str:
+    """Tell the model which language to use when the message does not show one."""
+    name = "English" if (lang or "es").startswith("en") else "Spanish"
+    return f" If you cannot tell which language the visitor wrote, answer in {name}."
+
+
 async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str:
     """Return the model's reply, or raise ModelFailure (the caller falls back honestly)."""
     user_msg: dict = {"role": "user", "content": message}
@@ -157,7 +163,7 @@ async def _call_ollama(message: str, lang: str, image_base64: str | None) -> str
     payload = {
         "model": OLLAMA_MODEL,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": SYSTEM_PROMPT + _language_hint(lang)},
             user_msg,
         ],
         "stream": False,
