@@ -133,9 +133,9 @@ def test_v1_checks_key_before_anything_reaches_ollama(tmp_path, monkeypatch):
 
 
 def test_pages_are_never_served_stale_after_a_deploy():
+    # "no-store", not "no-cache": Cloudflare overrides no-cache with max-age=14400 for .js/.css
     for path in ("/apps/kiosk-intercambio/", "/apps/kiosk-intercambio/app.js", "/apps/launcher/styles.css", "/packages/shared-ui/agent.css"):
-        assert client.get(path).headers["cache-control"] == "no-cache", path
-    assert client.get("/apps/kiosk-intercambio/app.js").headers.get("etag")  # so a re-check is a cheap 304
+        assert client.get(path).headers["cache-control"] == "no-store", path
 
 
 def test_the_false_demo_text_is_gone():
