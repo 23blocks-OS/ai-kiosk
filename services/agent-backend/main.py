@@ -507,6 +507,15 @@ async def root(request: Request):
     return RedirectResponse(f"/apps/launcher/{query}")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """A tent with a spark: browsers ask for this path without being told."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "packages", "shared-ui", "favicon.svg")
+    with open(path, "rb") as f:
+        body = f.read()
+    return Response(body, media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
+
+
 # Serve the kiosk UI from the same port when run from the repo root
 # (this is how the Cloudflare Tunnel mode works: one port, one origin).
 # Local dev can still use a plain static server + the backend on 8001.
