@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,42 +13,38 @@
   <header class="kiosk-header">
     <div>
       <h1 data-i18n="title">Raft</h1>
-      <p class="subtitle" data-i18n="subtitle">Respuestas de emergencia con fuentes reales. Una biblioteca pequeña, en este equipo.</p>
+      <p class="subtitle" data-i18n="subtitle">Emergency answers with real sources. A small library, on this box.</p>
     </div>
     <div class="header-actions">
-      <a class="home-button" id="home" href="../launcher/" data-i18n="home">Inicio</a>
-      <div class="lang-toggle" role="group" aria-label="Idioma / Language">
-        <button type="button" id="lang-es" aria-pressed="true">Español</button>
-        <button type="button" id="lang-en" aria-pressed="false">English</button>
-      </div>
+      <a class="home-button" id="home" href="../launcher/" data-i18n="home">Home</a>
     </div>
   </header>
 
   <section class="agent" aria-label="Raft">
-    <p class="emergency" data-i18n="emergency">Biblioteca de demostración. No es consejo de emergencia. En una emergencia, llama al 911.</p>
-    <span class="badge" data-i18n="badge">Biblioteca en este equipo: 9 documentos públicos de EE. UU. Sin internet para responder.</span>
+    <p class="emergency" data-i18n="emergency">Demo library. Not emergency advice. In an emergency, call 911.</p>
+    <span class="badge" data-i18n="badge">Library on this box: 9 US public documents. No internet needed to answer.</span>
 
     <div class="examples" role="group" aria-labelledby="ex-label">
-      <span id="ex-label" class="visually-hidden" data-i18n="examples_label">Preguntas de ejemplo</span>
-      <button type="button" data-q="smoke" data-i18n="ex_smoke">Humo de incendio</button>
-      <button type="button" data-q="generator" data-i18n="ex_generator">Generador en casa</button>
-      <button type="button" data-q="water" data-i18n="ex_water">Agua segura</button>
-      <button type="button" data-q="child" data-i18n="ex_child">Fiebre de un niño</button>
+      <span id="ex-label" class="visually-hidden" data-i18n="examples_label">Example questions</span>
+      <button type="button" data-q="smoke" data-i18n="ex_smoke">Wildfire smoke</button>
+      <button type="button" data-q="generator" data-i18n="ex_generator">Generator at home</button>
+      <button type="button" data-q="water" data-i18n="ex_water">Safe water</button>
+      <button type="button" data-q="child" data-i18n="ex_child">A child's fever</button>
     </div>
 
-    <p class="agent-status" data-state="idle" id="status"><span class="dot" aria-hidden="true"></span><span id="status-text" data-i18n="status_idle">Lista para ayudarte</span></p>
+    <p class="agent-status" data-state="idle" id="status"><span class="dot" aria-hidden="true"></span><span id="status-text" data-i18n="status_idle">Ready to help</span></p>
 
     <div class="chat" id="chat" aria-live="polite">
-      <p class="chat-empty" id="chat-empty" data-i18n="chat_empty">Haz una pregunta o toca un ejemplo. Respondo solo con lo que dicen los documentos, y te muestro dónde lo leí.</p>
+      <p class="chat-empty" id="chat-empty" data-i18n="chat_empty">Ask a question or tap an example. I answer only from what the documents say, and I show where I read it.</p>
     </div>
 
     <form class="composer" id="composer">
-      <label class="visually-hidden" for="input" data-i18n="input_label">Escribe tu pregunta</label>
-      <input id="input" type="text" autocomplete="off" data-i18n-placeholder="input_placeholder" placeholder="Escribe tu pregunta…">
-      <button type="submit" class="send-button" data-i18n="send">Enviar</button>
+      <label class="visually-hidden" for="input" data-i18n="input_label">Type your question</label>
+      <input id="input" type="text" autocomplete="off" data-i18n-placeholder="input_placeholder" placeholder="Type your question…">
+      <button type="submit" class="send-button" data-i18n="send">Send</button>
     </form>
 
-    <p class="privacy" data-i18n="privacy">Nada se graba. Nada sale de este equipo.</p>
+    <p class="privacy" data-i18n="privacy">Nothing is recorded. Nothing leaves this device.</p>
   </section>
 </main>
 <script src="config.js"></script>

@@ -11,7 +11,7 @@
       shop_name: "Operador de tienda",
       shop_desc: "Ayuda a pequeños negocios con su programa de Windows de siempre.",
       lifeboat_name: "Raft",
-      lifeboat_desc: "Pasos de emergencia tomados de manuales reales, cuando todo lo demás falla.",
+      lifeboat_desc: "Pasos de emergencia tomados de manuales reales. Solo en inglés.",
       live: "Disponible",
       soon: "Próximamente",
       privacy: "Nada se graba. Nada sale de este equipo."

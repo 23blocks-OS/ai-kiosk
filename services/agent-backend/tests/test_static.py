@@ -175,3 +175,10 @@ def test_raft_page_and_launcher_link():
     js = client.get("/apps/kiosk-raft/app.js").text
     assert 'kiosk: "raft"' in js and "sources" in js
     assert 'href="../kiosk-raft/"' in client.get("/apps/launcher/").text
+
+
+def test_raft_page_is_english_only():
+    page = client.get("/apps/kiosk-raft/").text
+    assert 'lang="en"' in page and 'id="lang-es"' not in page and 'id="lang-en"' not in page
+    js = client.get("/apps/kiosk-raft/app.js").text
+    assert "lang-es" not in js and 'var lang = "en"' in js
