@@ -9,3 +9,4 @@
 
 ## Update 2026-11-09
 Built (PR #45). Kiosk keys are limited to their own kiosk: `app:raft` cannot ask for `shop` (403).
+- **English only.** The shelf has no Spanish content, so the Raft page has no Spanish option. Juan, 2026-11-09: "we do not seem to have content in spanish for raft. do we. remove the spanish option on the raft demo". Spanish needs Spanish sources first (backlog idea).

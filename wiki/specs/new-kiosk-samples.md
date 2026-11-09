@@ -11,6 +11,7 @@ The launcher shows three working experiences: Nonprofit (Intercambio), Shop Oper
 Decision 0001 left Shop and Lifeboat as "Coming soon". I deleted the three old placeholder pages (PR #33). `docs/architecture.md` says Shop sees a screenshot of the shop's Windows PC. `docs/lifeboat-eval.md` says Lifeboat answers from real manuals with citations. Aurelium has 8 GB and runs one 4B model, so the full Lifeboat library (55 to 210 GB, three extra model servers) does not fit. These are samples to demo the idea, not the products.
 
 ## Not in scope
+- Spanish for Raft: the shelf is English, so the Raft page is English only.
 - The full Lifeboat port (llama.cpp CUDA build, reranker, ZIM library). It stays in `docs/lifeboat-eval.md`.
 - Embeddings or a vector database. Part C uses keyword scoring.
 - Real shop software or real customer data. The shop is fictional.

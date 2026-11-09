@@ -35,7 +35,7 @@ Ranked for a live demo on this kiosk.
 6. **Paper binder.** A print button that gives the verbatim passage, no AI text. Needs a printer; later.
 
 ## Not in scope
-Household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperian content; offline maps; the full Jetson port; voice beyond the shared shell. Phase 2 below covers vectors.
+Spanish (the shelf is English; the page is English only, PR #47); household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperian content; offline maps; the full Jetson port; voice. Phase 2 below covers vectors.
 
 ## Approach
 **Phase 1, Raft (this spec).** A starter shelf of ten US-government PDFs (about 60 MB), indexed once into one SQLite FTS5 file. At question time: expand the question, take the top 3 passages by BM25 (two per page at most), cut each to 1,200 characters, build the prompt with Lifeboat's rules, call Ollama, run the dose guard, return `answer`, `sources` and an optional `warn`. If BM25 returns nothing, skip the model and return the "not covered" text.
@@ -103,4 +103,4 @@ Live, read back through Cloudflare (population: one run each, 2026-11-09):
 - Tax question: honest "My sources don't cover this" in 1 s, no model call.
 - Child ibuprofen question: the model answered "My sources don't cover this" and gave no dose, because the shelf holds no dosing table. The red box did not show, since there was no dose to catch. The guard is tested in code, but this demo cannot show it. The honest refusal is the safety moment.
 - Free memory on Aurelium with Raft running: 130 MB of 7,485 MB. `/v1/models` on `kiosk.ciaocorp.com` is still 404. The log shows `user=app:raft` and no question text.
-Changed from the spec: sources are hidden when the answer has no citation, so a refusal does not show passages it did not use. The Boulder-specific source is still missing.
+Changed from the spec: the page is English only, with no language toggle, because every source is English (Juan, 2026-11-09: "we do not seem to have content in spanish for raft. do we. remove the spanish option on the raft demo"; PR #47). The backend still answers in the visitor's language, but the Raft page sends English. Sources are hidden when the answer has no citation, so a refusal does not show passages it did not use. The Boulder-specific source is still missing.

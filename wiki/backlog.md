@@ -38,6 +38,7 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 
 ## Ideas (no issue yet)
 - **Shared kiosk shell.** `kiosk-shop` is a copy of `kiosk-intercambio` (about 540 lines of JS each). Extract the shared parts when a fourth page appears.
+- **Raft in Spanish.** Needs Spanish public-domain sources (for example Ready.gov and CDC publish Spanish versions). Add them to the shelf, then bring the language toggle back.
 - **Raft: more shelf.** FEMA Food and Water (FEMA 477) refuses automated download (403). Add by hand if Juan wants it. More documents, a Boulder County source.
 - **Streaming for `/v1`.** Not supported now. Many OpenAI clients stream.
 - **Whisper and Piper (voice)** are not installed on Aurelium.
