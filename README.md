@@ -8,9 +8,6 @@ Nothing leaves the box.
 | Kiosk | Who it serves | What the agent sees (PiP) | Status |
 | --- | --- | --- | --- |
 | [Intercambio](apps/kiosk-intercambio/) | Spanish-speaking newcomers at a community center | Camera, pointed at a document | Prototype — building first |
-| [Shop Operator](apps/kiosk-shop/) | Small shops running legacy Windows software | Screenshot of the shop's Windows PC | Stub — phase 2 |
-| [Nonprofit](apps/kiosk-nonprofit/) | Small nonprofits in Boulder County | Camera, pointed at a document | Stub — phase 2 |
-| [Lifeboat](apps/kiosk-lifeboat/) | Anyone, when everything is down — emergency steps from real manuals | Source passage the agent is reading | Candidate — Linux/NVIDIA port is the open work, see [docs/lifeboat-eval.md](docs/lifeboat-eval.md) |
 
 ## Layout
 
@@ -32,9 +29,6 @@ Ollama on :11434 is never tunnelled. See docs/remote-access.md.
 ```
 apps/
   kiosk-intercambio/   # first working prototype: agent + Picture-in-Picture
-  kiosk-shop/          # stub
-  kiosk-nonprofit/     # stub
-  kiosk-lifeboat/      # candidate stub — emergency, see docs/lifeboat-eval.md
   website/             # static landing page for the project
 services/
   agent-backend/       # FastAPI, wired to Ollama (see its README)
