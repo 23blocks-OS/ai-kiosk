@@ -24,4 +24,4 @@
 - [2026-11-08 Lares handoff](sources/2026-11-08-lares-handoff.md)
 
 - [Spec: new kiosk samples (Shop, Lifeboat)](specs/new-kiosk-samples.md) — draft, waits for Juan
-- [Spec: Lifeboat kiosk](specs/lifeboat-kiosk.md) — draft, waits for Juan
+- [Spec: Raft kiosk](specs/raft-kiosk.md) — draft, waits for Juan
