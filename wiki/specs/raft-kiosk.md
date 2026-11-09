@@ -1,12 +1,13 @@
-# Spec — Lifeboat kiosk (replaces part C of `new-kiosk-samples.md`)
+# Spec — Raft kiosk (replaces part C of `new-kiosk-samples.md`)
 
 - **Issue:** [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37)
 - **Date:** 2026-11-09. **Status:** draft. No code written.
-- **Approved by:** waits for Juan.
+- **Name:** Raft. Juan, 2026-11-09: "ok lifebote light it is , call it raft then". Raft is our small version of Lifeboat, built on the 4B model.
+- **Approved by:** Juan approved the Lite approach and the name. The hero example and the starter shelf still wait for his word.
 - **Source read:** `23blocks-OS/lifeboat`, fork of `johnpsasser/lifeboat`, HEAD `69b3ca1`, MIT. I read `README.md`, `DESIGN.md`, `app/{server,retrieve,llm,config,household}.py`, `sources.json`, `sources_pdf.json`, `regions/`, `scripts/{verify_offline,make_binder}.py` (2,601 lines in all).
 
 ## Goal
-A visitor opens Lifeboat on the kiosk, asks an emergency question, and gets a short cited answer from real public-domain manuals, or an honest "My sources don't cover this". The kiosk shows the source passage and proves the library is local.
+A visitor opens Raft on the kiosk, asks an emergency question, and gets a short cited answer from real public-domain manuals, or an honest "My sources don't cover this". The kiosk shows the source passage and proves the library is local.
 
 ## What Lifeboat is (from the code)
 Lifeboat is a Mac-only emergency assistant. It has four parts.
@@ -37,24 +38,24 @@ Ranked for a live demo on this kiosk.
 Household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperian content; offline maps; the full Jetson port; voice beyond the shared shell. Phase 2 below covers vectors.
 
 ## Approach
-**Phase 1, "Lifeboat Lite" (this spec).** A starter shelf of ten US-government PDFs (about 60 MB), indexed once into one SQLite FTS5 file. At question time: expand the question, take the top 3 passages by BM25 (two per page at most), cut each to 1,200 characters, build the prompt with Lifeboat's rules, call Ollama, run the dose guard, return `answer`, `sources` and an optional `warn`. If BM25 returns nothing, skip the model and return the "not covered" text.
+**Phase 1, Raft (this spec).** A starter shelf of ten US-government PDFs (about 60 MB), indexed once into one SQLite FTS5 file. At question time: expand the question, take the top 3 passages by BM25 (two per page at most), cut each to 1,200 characters, build the prompt with Lifeboat's rules, call Ollama, run the dose guard, return `answer`, `sources` and an optional `warn`. If BM25 returns nothing, skip the model and return the "not covered" text.
 
 **Starter shelf** (ids from `sources_pdf.json`; Juan reviews before ingest): `ready-wildfire-info-sheet`, `epa-wildfire-smoke-guide`, `ready-power-outage-info-sheet`, `cdc-generator-co-safety`, `cpsc-generator-safety`, `cdc-make-water-safe`, `fema-food-water-emergency`, `tc-4-02-1-first-aid`, `niosh-poisonous-plants`, `fema-are-you-ready`. I check each license line when I download it.
 
-**Why not run Lifeboat itself.** Memory. The 4B model plus embedding and reranker servers do not fit in 8 GB.
+**Why not run Lifeboat itself.** Raft is the small version. Memory. The 4B model plus embedding and reranker servers do not fit in 8 GB.
 
 **Phase 2 (later, only if Phase 1 answers miss).** Add vectors with a small Ollama embedding model, measure memory first. Not started.
 
 **Latency.** Lifeboat sends 8 passages of up to 3,500 characters (about 7,000 tokens). Our Ollama context is 4,096 tokens. Three passages of 1,200 characters (about 1,000 tokens) fit. I measure the full answer time on Aurelium before I claim a number. The Cloudflare limit is about 100 s and our timeout is 90 s.
 
 ## Where
-- `services/agent-backend/lifeboat/` (new package): `library.py` (ingest, `sqlite3` FTS5), `retrieve.py` (`expand`, `search`), `guard.py` (`dose_warning`), `prompt.py` (rules).
-- `services/agent-backend/lifeboat/shelf.json`: ten entries (id, title, URL, license, date fetched, sha256). PDFs and the index file `lifeboat.sqlite` are gitignored. `scripts/build_shelf.py` downloads, checks sha256, extracts and indexes.
-- `services/agent-backend/main.py`: `/api/chat` with `kiosk=lifeboat` calls the package and returns `sources` and `warn`. Depends on #35.
-- `apps/kiosk-lifeboat/{index.html,app.js,styles.css}`: chat, a sources panel with the passage text, the red warning box, the badge, the 911 line.
-- `LICENSE-lifeboat` or a `NOTICE` file with the MIT text of the upstream project.
+- `services/agent-backend/raft/` (new package): `library.py` (ingest, `sqlite3` FTS5), `retrieve.py` (`expand`, `search`), `guard.py` (`dose_warning`), `prompt.py` (rules).
+- `services/agent-backend/raft/shelf.json`: ten entries (id, title, URL, license, date fetched, sha256). PDFs and the index file `raft.sqlite` are gitignored. `scripts/build_shelf.py` downloads, checks sha256, extracts and indexes.
+- `services/agent-backend/main.py`: `/api/chat` with `kiosk=raft` calls the package and returns `sources` and `warn`. Depends on #35.
+- `apps/kiosk-raft/{index.html,app.js,styles.css}`: chat, a sources panel with the passage text, the red warning box, the badge, the 911 line.
+- A `NOTICE` file with the MIT text of the upstream project.
 - `services/agent-backend/requirements.txt`: `pypdf` (pinned).
-- Tests: `tests/test_lifeboat.py`.
+- Tests: `tests/test_raft.py`.
 
 ## Steps
 1. Juan approves this spec and picks the hero example.
@@ -73,16 +74,16 @@ Household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperi
 - `test_child_dose_guard`: a child question plus an answer with "400 mg" gives a warning; an adult question gives none; an answer with an adult daily maximum for a child adds the stronger text.
 - `test_sources_are_returned_and_cited`: the reply lists up to 3 sources with title, document and page.
 - `test_shelf_is_public_domain`: every `shelf.json` entry has a license that starts with "US Gov public domain" and an allowed host.
-- `test_lifeboat_key_is_app_scoped`: `app:lifeboat` gets 403 on `/v1/*`.
-- `test_log_has_no_question`: the call log line names `kiosk=lifeboat` and holds no question text.
+- `test_raft_key_is_app_scoped`: `app:raft` gets 403 on `/v1/*`.
+- `test_log_has_no_question`: the call log line names `kiosk=raft` and holds no question text.
 
 ## How we check it live
-1. `https://kiosk.ciaocorp.com/apps/launcher/` opens Lifeboat.
+1. `https://kiosk.ciaocorp.com/apps/launcher/` opens Raft.
 2. Wildfire smoke question: answer with `[1]` and a source panel, time recorded.
 3. Child ibuprofen question: the red box shows.
 4. A tax question: "My sources don't cover this" in under 2 seconds.
 5. `ollama ps` shows one model. Free memory is not lower than today.
-6. The log shows `route=chat user=app:lifeboat` and no question text. `/v1/models` on `kiosk.ciaocorp.com` is still 404.
+6. The log shows `route=chat user=app:raft` and no question text. `/v1/models` on `kiosk.ciaocorp.com` is still 404.
 
 ## Deploy and rollback
 `git pull`, run `scripts/build_shelf.py` once, restart the service. Rollback: `git revert` the merge and restart. The shelf files stay on disk. Intercambio does not change.
@@ -92,7 +93,7 @@ Household intake; embeddings and reranker; Wikipedia, Stack Exchange and Hesperi
 - **Accuracy claim.** I do not claim any accuracy number until the five-question suite and the live checks are done.
 - **Latency.** Unknown until measured on Aurelium.
 - **Boulder-specific sources.** I have not found or checked a Boulder County document. Juan can point me to one; otherwise the shelf stays national.
-- **Questions for Juan:** (1) Is the hero "wildfire smoke" plus the child-dose guard? (2) Is the ten-PDF starter shelf right? (3) Is Lifeboat Lite on our 4B model acceptable, with the full port left for later?
+- **Questions for Juan:** (1) Is the hero "wildfire smoke" plus the child-dose guard? (2) Is the ten-PDF starter shelf right? (3) Answered: Raft on our 4B model, the full port later.
 
 ## Result
 Filled after the work.
