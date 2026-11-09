@@ -1,8 +1,8 @@
 # Spec — New kiosk samples: Shop Operator and Lifeboat
 
 - **Issues:** [#35](https://github.com/23blocks-OS/ai-kiosk/issues/35) per-kiosk prompt and keys (part A), [#36](https://github.com/23blocks-OS/ai-kiosk/issues/36) Shop Operator (part B), [#37](https://github.com/23blocks-OS/ai-kiosk/issues/37) Lifeboat (part C).
-- **Date:** 2026-11-09. **Status:** draft.
-- **Approved by:** waits for Juan.
+- **Date:** 2026-11-09. **Status:** done (A and B). Part C is [raft-kiosk.md](raft-kiosk.md).
+- **Approved by:** Juan, 2026-11-09: "approved."
 
 ## Goal
 The launcher shows three working experiences: Nonprofit (Intercambio), Shop Operator and Raft. Each opens a kiosk page with its own prompt, its own service key and its own sample data. Each one works on the demo without a camera.
@@ -71,4 +71,4 @@ Same as before: merge, `git pull` and `systemctl --user restart ai-kiosk` on Aur
 - **Questions for Juan:** (1) Are Shop Operator and Lifeboat the "other samples"? (2) Lifeboat: is a 12-passage public-domain demo library right, or does he want a different source? (3) Shop: fictional Ciao Shop screens are fine? (4) Build order A, B, C is my recommendation.
 
 ## Result
-Filled after the work.
+A: PR #41, live. `kiosk` field with `PROMPTS`; unknown kiosk gives 400; an app key asking for another kiosk gives 403 (added beyond the spec). B: PR #44, live. Three fictional screens drawn by `apps/kiosk-shop/samples/make.py`. Live check: sample screen plus "How do I print the daily report?" named the Print Daily Report button in 8 s; "How do I issue a gift card?" answered "I cannot see that on this screen" (it then guessed "open the Settings tab", a weak spot). `kiosk-shop` is a copy of the Intercambio shell.

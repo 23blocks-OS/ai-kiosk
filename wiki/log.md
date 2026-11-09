@@ -24,3 +24,4 @@ Append only. Newest at the bottom.
 - 2026-11-09 — Juan: read the Lifeboat repo, spec only. Read all 2,601 lines. Finding: reuse prompt, retrieval ideas and the child-dose guard in our backend on the 4B model; the full port does not fit 8 GB. Spec `raft-kiosk.md` (draft).
 - 2026-11-09 — Juan names the Lifeboat sample "Raft" (Lifeboat Lite). Decision 0009. Spec renamed `raft-kiosk.md`.
 - 2026-11-09 — Spec approved by Juan ("approved."). #35 merged (PR #41) and live: unknown kiosk 400, another kiosk's key 403. Juan asks for a Raft shelf loader (memory limited, storage cheap). Issue #42, spec `raft-shelf-loader.md` (draft).
+- 2026-11-09 — Built and deployed #35 (PR #41), Shop Operator #36 (PR #44) and Raft #37 (PR #45). FEMA 477 refused the automated download (403); shelf is 9 documents. Raft latency 14 to 19 s; refusal and no-match are fast. The child-dose guard cannot be shown live because the model refuses without dose data.
