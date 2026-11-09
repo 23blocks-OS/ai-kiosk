@@ -136,3 +136,9 @@ def test_real_shelf_finds_the_demo_questions():
         hits = retrieve.search(db, q)
         assert hits and hits[0]["doc"] in docs, (q, [h["doc"] for h in hits])
     assert retrieve.search(db, "How do I file my taxes?") == []
+
+
+def test_sources_are_hidden_when_the_answer_cites_nothing(shelf, monkeypatch):
+    fake_ollama(monkeypatch, {"message": {"content": "My sources don't cover this."}})
+    body = ask("Wildfire smoke is heavy outside. What do I do indoors?").json()
+    assert body["sources"] == []

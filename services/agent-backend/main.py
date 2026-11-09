@@ -18,6 +18,7 @@ import base64
 import hmac
 import json
 import os
+import re
 import time
 from contextlib import asynccontextmanager
 
@@ -302,6 +303,8 @@ async def _raft_answer(req, user: str):
     status, reply, queue_pos = await _guarded_model_call(req.message, req.lang, None, "chat", user, "raft", system)
     sources = [{"n": i, "title": p["title"], "doc": p["doc"], "page": p["page"], "excerpt": p["text"][:400]}
                for i, p in enumerate(passages, 1)]
+    if not (reply and re.search(r"\[\d\]", reply)):
+        sources = []  # the answer cites nothing, so do not show passages it did not use
     warn = dose_warning(req.message, reply) if status == "ok" and reply else None
     return _response(status, reply, req.lang, queue_pos, extra={"sources": sources, "warn": warn, "kiosk": "raft"})
 
