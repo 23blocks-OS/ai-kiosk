@@ -277,7 +277,8 @@
     whoEl.className = "who";
     whoEl.textContent = who === "user" ? t("who_you") : t("who_agent");
     div.appendChild(whoEl);
-    div.appendChild(document.createTextNode(text));
+    if (who === "agent" && window.KioskMarkdown) window.KioskMarkdown.render(text, div);
+    else div.appendChild(document.createTextNode(text));
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
   }
@@ -285,7 +286,7 @@
   function speak(text) {
     if (!("speechSynthesis" in window)) { setStatus("idle"); return; }
     try {
-      var utter = new SpeechSynthesisUtterance(text);
+      var utter = new SpeechSynthesisUtterance(window.KioskMarkdown ? window.KioskMarkdown.plain(text) : text);
       utter.lang = lang === "es" ? "es-ES" : "en-US";
       utter.onend = function () { setStatus("idle"); };
       utter.onerror = function () { setStatus("idle"); };
