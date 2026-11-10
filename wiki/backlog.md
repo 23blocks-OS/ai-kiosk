@@ -9,6 +9,7 @@ Priority order. Every audit finding has a GitHub issue and a row here. When we d
 - **PR #1 author.** The commit says "Juan Pelaez", not `ciao-kiosk`. Rewrite only if Juan asks.
 
 ## Planned (spec drafted, waits for Juan's approval)
+- [https://github.com/23blocks-OS/ai-kiosk/issues/54](https://github.com/23blocks-OS/ai-kiosk/issues/54) Family kiosk: an agent that knows one (fictional) family. [Spec](specs/family-kiosk.md). Juan, 2026-11-09: "lets build the family AI Agent. another option on the original screen."
 - [#42](https://github.com/23blocks-OS/ai-kiosk/issues/42) Raft shelf loader: load and unload library packs by situation. [Spec](specs/raft-shelf-loader.md). Comes after Raft Phase 1. Juan, 2026-11-09: "load this elements to memory based on the emergency or situation."
 
 ## In progress
