@@ -28,3 +28,4 @@ Append only. Newest at the bottom.
 - 2026-11-09 — Juan: no Spanish content for Raft. Raft page is English only (PR #47). Wiki updated; Spanish shelf is a backlog idea.
 - 2026-11-09 — Tested the team API with Alejandro's and Camilo's keys. Found two must-fix issues (https://github.com/23blocks-OS/ai-kiosk/issues/49, https://github.com/23blocks-OS/ai-kiosk/issues/50). Wrote [performance plan](specs/performance-plan.md), no code.
 - 2026-11-09 — Built the performance plan items 1 and 2: /v1 reply cap and model re-pin. Idle call 50 s to 1.3 s. Memory still tight.
+- 2026-11-09 — Bug: agent replies showed Markdown (`**`). Kiosk pages now render replies as HTML with `packages/shared-ui/markdown.js` (no innerHTML, so model text cannot inject markup); the voice reads text without the symbols.

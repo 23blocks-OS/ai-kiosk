@@ -182,3 +182,11 @@ def test_raft_page_is_english_only():
     assert 'lang="en"' in page and 'id="lang-es"' not in page and 'id="lang-en"' not in page
     js = client.get("/apps/kiosk-raft/app.js").text
     assert "lang-es" not in js and 'var lang = "en"' in js
+
+
+def test_agent_replies_are_rendered_not_shown_as_markdown():
+    assert client.get("/packages/shared-ui/markdown.js").status_code == 200
+    for k in ("intercambio", "shop", "raft"):
+        assert "markdown.js" in client.get(f"/apps/kiosk-{k}/").text
+        js = client.get(f"/apps/kiosk-{k}/app.js").text
+        assert "KioskMarkdown.render" in js

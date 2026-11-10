@@ -59,7 +59,8 @@
     whoEl.className = "who";
     whoEl.textContent = who === "user" ? t("who_you") : t("who_agent");
     div.appendChild(whoEl);
-    div.appendChild(document.createTextNode(text));
+    if (who === "agent" && window.KioskMarkdown) window.KioskMarkdown.render(text, div);
+    else div.appendChild(document.createTextNode(text));
     if (extra && extra.warn) {
       var w = document.createElement("div");
       w.className = "warn-box";
