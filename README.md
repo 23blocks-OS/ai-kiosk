@@ -7,7 +7,7 @@ Nothing leaves the box.
 
 | Kiosk | Who it serves | What the agent sees (PiP) | Status |
 | --- | --- | --- | --- |
-| [Intercambio](apps/kiosk-intercambio/) | Spanish-speaking newcomers at a community center | Camera, pointed at a document | Prototype — building first |
+| [Intercambio](apps/kiosk-intercambio/) | Spanish-speaking newcomers at a community center | Camera, pointed at a document | Piloted Nov 18, 2026 — 17 people used it, 12 would recommend it and come back |
 
 ## Layout
 

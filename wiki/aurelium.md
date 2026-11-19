@@ -4,7 +4,7 @@ Facts from the Lares handoff ([source](sources/2026-11-08-lares-handoff.md)) and
 
 ## Device
 - NVIDIA Jetson Orin Nano Super, hostname `aurelian`. 8 GB shared memory, 1 TB NVMe. Ubuntu 24.04, Jetson Linux R39.2.1.
-- LAN `10.0.0.94`. Tailscale `100.104.207.74`, name `aurelian.rhinoceros-centauri.ts.net`. User `jpelaez`. `sudo` needs Juan's password.
+- LAN `10.0.0.94`. User `jpelaez`. `sudo` needs Juan's password.
 - Memory is tight: about 80 MB free with a model loaded (checked 2026-11-08).
 - Ollama on `127.0.0.1:11434`, never exposed. Models: `qwen3-vl:4b`, `qwen3-vl:4b-instruct`.
 
