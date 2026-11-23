@@ -49,6 +49,11 @@ We own none of these devices yet. No spec until Juan picks one.
 - [#61](https://github.com/23blocks-OS/ai-kiosk/issues/61) Skylight calendar: family events through Google Calendar sync (official), invites and photos by email. S-M.
 - [#62](https://github.com/23blocks-OS/ai-kiosk/issues/62) Skylight private interface: chores, lists, meals (unofficial, can break). After #61.
 
+## Toy eyes (planning; Juan, 2026-11-23: "what can we do to have movement eyes for the toy")
+- [#64](https://github.com/23blocks-OS/ai-kiosk/issues/64) Several ESP32 boards in one toy: main board (camera, mic, Wi-Fi, speaker) plus helpers over UART (D6/D7). S.
+- [#65](https://github.com/23blocks-OS/ai-kiosk/issues/65) Screen eyes: two GC9A01 1.28" round displays on a helper XIAO ESP32S3. First choice. M.
+- [#66](https://github.com/23blocks-OS/ai-kiosk/issues/66) Mechanical eyes: servo eyeballs and eyelids, PCA9685, own 5 V supply. After #65. L.
+
 ## Ideas (no issue yet)
 - **Shared kiosk shell.** `kiosk-shop` is a copy of `kiosk-intercambio` (about 540 lines of JS each). Extract the shared parts when a fourth page appears.
 - **Raft in Spanish.** Needs Spanish public-domain sources (for example Ready.gov and CDC publish Spanish versions). Add them to the shelf, then bring the language toggle back.
