@@ -39,6 +39,16 @@ Finding numbers are from the audit report. Issue numbers are GitHub's.
 | 14 | [https://github.com/23blocks-OS/ai-kiosk/issues/49](https://github.com/23blocks-OS/ai-kiosk/issues/49) | must-fix | Ollama OOM-killed by one long generation on the team API | [spec](specs/performance-plan.md) | cap built 2026-11-09; memory still near 100 MB free |
 | 15 | [https://github.com/23blocks-OS/ai-kiosk/issues/50](https://github.com/23blocks-OS/ai-kiosk/issues/50) | must-fix | /v1 resets keep-alive to 5 min; next team call waits 50 s or fails | [spec](specs/performance-plan.md) | done 2026-11-09 (backend re-pins every 120 s) |
 
+## Device integrations (planning; Juan, 2026-11-22: "so our agents can 'jump' to those devices as well")
+We own none of these devices yet. No spec until Juan picks one.
+- [#56](https://github.com/23blocks-OS/ai-kiosk/issues/56) Device bridge on mini-lola: speakers and screens as agent devices (adapters below). M.
+- [#57](https://github.com/23blocks-OS/ai-kiosk/issues/57) Sonos adapter: `speak` (audio clip over the music). No screen, no mic. S.
+- [#58](https://github.com/23blocks-OS/ai-kiosk/issues/58) Amazon Echo / Echo Show adapter: `speak` through the unofficial Alexa app interface (can break). M.
+- [#59](https://github.com/23blocks-OS/ai-kiosk/issues/59) Google Nest Hub adapter: `speak` and `display` (cast a page we control). M.
+- [#60](https://github.com/23blocks-OS/ai-kiosk/issues/60) Fire HD / Android tablet as a full device: camera, mic, speaker, screen. Best fit for the family kiosk (#54). L, split.
+- [#61](https://github.com/23blocks-OS/ai-kiosk/issues/61) Skylight calendar: family events through Google Calendar sync (official), invites and photos by email. S-M.
+- [#62](https://github.com/23blocks-OS/ai-kiosk/issues/62) Skylight private interface: chores, lists, meals (unofficial, can break). After #61.
+
 ## Ideas (no issue yet)
 - **Shared kiosk shell.** `kiosk-shop` is a copy of `kiosk-intercambio` (about 540 lines of JS each). Extract the shared parts when a fourth page appears.
 - **Raft in Spanish.** Needs Spanish public-domain sources (for example Ready.gov and CDC publish Spanish versions). Add them to the shelf, then bring the language toggle back.
